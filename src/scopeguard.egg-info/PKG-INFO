@@ -3,3 +3,4 @@ Name: scopeguard
 Version: 0.1.0
 Summary: Deterministic target authorization engine for security testing
 Requires-Python: >=3.13
+Requires-Dist: PyYAML>=6.0
