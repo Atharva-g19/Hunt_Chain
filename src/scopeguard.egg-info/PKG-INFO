@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: scopeguard
+Version: 0.1.0
+Summary: Deterministic target authorization engine for security testing
+Requires-Python: >=3.13

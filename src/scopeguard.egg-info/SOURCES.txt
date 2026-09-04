@@ -1,0 +1,12 @@
+pyproject.toml
+src/scopeguard.egg-info/PKG-INFO
+src/scopeguard.egg-info/SOURCES.txt
+src/scopeguard.egg-info/dependency_links.txt
+src/scopeguard.egg-info/top_level.txt
+src/scopeguard/cli/__init__.py
+src/scopeguard/engine/__init__.py
+src/scopeguard/matchers/__init__.py
+src/scopeguard/models/__init__.py
+src/scopeguard/models/program.py
+src/scopeguard/validators/__init__.py
+tests/test_program.py
