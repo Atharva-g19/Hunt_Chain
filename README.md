@@ -25,5 +25,5 @@ SafeGuard is planned as a modular security-testing workflow.
 
 
 <p align="center">
-  <img src="image.png" alt="SafeGuard Security Testing Workflow" width="700">
+  <img src="image1.png" alt="SafeGuard Security Testing Workflow" width="700">
 </p>
