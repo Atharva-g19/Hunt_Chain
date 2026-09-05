@@ -1,0 +1,99 @@
+program:
+  # Copy the program name exactly as shown on the platform.
+  name: ""
+
+scope:
+  rules:
+
+    # Create ONE rule for each scope item you extract.
+    #
+    # Give every rule a unique ID:
+    # S001, S002, S003, ...
+    #
+    # effect:
+    #   include = explicitly authorized
+    #   exclude = explicitly excluded
+    #
+    # asset.type:
+    #   hostname
+    #   host_wildcard
+    #   url
+    #   url_path_wildcard
+    #   ipv4
+    #   ipv4_cidr
+    #
+    # asset.value:
+    #   Copy the actual target/pattern from the program.
+    #
+    # category:
+    #   Use the program's category if one is provided.
+    #   Examples may include:
+    #     web_application
+    #     api
+    #     network
+    #
+    # description:
+    #   Short explanation of what the asset represents.
+    #
+    # condition:
+    #   Use only when authorization depends on a condition that
+    #   ScopeGuard cannot automatically evaluate.
+    #
+    # IMPORTANT:
+    # Never invent authorization.
+
+    - id: "S001"
+      effect: "include"
+      asset:
+        type: "hostname"
+        value: ""
+        category: ""
+      description: ""
+      condition: ""
+
+
+
+
+# ============================================================
+# EXAMPLE OF MANUAL EXTRACTION
+# ============================================================
+#
+# Suppose the program says:
+#
+#   In Scope:
+#     example.com
+#     *.api.example.com
+#     https://example.com/api/*
+#
+#   Out of Scope:
+#     admin.example.com
+#
+# Extract it as:
+#
+# ============================================================
+
+# - id: "S001"
+#   effect: "include"
+#   asset:
+#     type: "hostname"
+#     value: "example.com"
+#
+# - id: "S002"
+#   effect: "include"
+#   asset:
+#     type: "host_wildcard"
+#     value: "*.api.example.com"
+#
+# - id: "S003"
+#   effect: "include"
+#   asset:
+#     type: "url_path_wildcard"
+#     value: "https://example.com/api/*"
+#
+# - id: "S004"
+#   effect: "exclude"
+#   asset:
+#     type: "hostname"
+#     value: "admin.example.com"
+#
+# ============================================================

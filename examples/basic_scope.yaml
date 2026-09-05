@@ -1,0 +1,62 @@
+version: "1"
+
+program:
+  name: "ScopeGuard Example Program"
+
+scope:
+  rules:
+    - id: "S001"
+      effect: "include"
+      asset:
+        type: "hostname"
+        value: "example.com"
+        category: "web_application"
+      description: "Main website"
+
+    - id: "S002"
+      effect: "include"
+      asset:
+        type: "host_wildcard"
+        value: "*.api.example.com"
+        category: "api"
+      description: "API subdomains"
+
+    - id: "S003"
+      effect: "exclude"
+      asset:
+        type: "hostname"
+        value: "admin.example.com"
+        category: "web_application"
+      description: "Administrative host excluded from testing"
+
+    - id: "S004"
+      effect: "include"
+      asset:
+        type: "url"
+        value: "https://example.com/api"
+        category: "api"
+      description: "Specific API endpoint"
+
+    - id: "S005"
+      effect: "include"
+      asset:
+        type: "url_path_wildcard"
+        value: "https://example.com/api/v1/*"
+        category: "api"
+      description: "API v1 paths"
+
+    - id: "S006"
+      effect: "include"
+      asset:
+        type: "ipv4"
+        value: "192.168.1.10"
+        category: "network"
+      description: "Authorized IPv4 address"
+
+    - id: "S007"
+      effect: "include"
+      asset:
+        type: "ipv4_cidr"
+        value: "192.168.2.0/24"
+        category: "network"
+      description: "Authorized IPv4 network"
