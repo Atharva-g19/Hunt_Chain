@@ -57,13 +57,13 @@ and continues through reconnaissance, vulnerability testing, manual analysis, va
 ┌─────────────────────────────────────────────┐
 │ Project 3 — Vulnerability Testing Toolkit   │
 │                                             │
-│ Detected Technology                          │
+│ Detected Technology                         │
 │      ↓                                      │
 │ Testing Hypotheses                          │
 │      ↓                                      │
 │ Relevant Check Modules                      │
 │      ↓                                      │
-│ Automated Testing                            │
+│ Automated Testing                           │
 └──────────────────────┬──────────────────────┘
                        │
                        ▼
