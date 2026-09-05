@@ -1,39 +1,29 @@
 # ScopeGuard
 
-ScopeGuard is a deterministic target-authorization engine for security testing.
+> Deterministic target authorization engine for security testing.
 
-It takes a machine-readable bug-bounty scope definition and determines whether a supplied target is:
+ScopeGuard is **Project 1 of SafeGuard**, a cybersecurity automation project designed to make security testing safer, more structured, and more reliable.
+
+Its purpose is simple:
+
+**Before testing a target, determine whether that target is actually authorized.**
+
+ScopeGuard takes a manually prepared, machine-readable bug-bounty scope definition and checks whether a supplied target is:
 
 - `IN_SCOPE`
 - `OUT_OF_SCOPE`
 - `UNKNOWN`
 - `CONFLICT`
 
-The project is designed to make target authorization explicit, deterministic, explainable, and fail-closed.
+The project follows a **fail-closed security principle**: when authorization cannot be determined safely, ScopeGuard does not assume permission.
 
 ---
 
-## Project Goal
+# SafeGuard Project
 
-In security testing, one of the most important questions is:
+SafeGuard is planned as a modular security-testing workflow.
 
-> "Am I authorized to test this target?"
 
-ScopeGuard separates authorization from reconnaissance and vulnerability testing.
-
-A human first reads a bug-bounty program's policy and manually converts the authorized assets into a structured YAML scope definition.
-
-ScopeGuard then evaluates targets against those rules.
-
-```text
-Bug-bounty policy
-       |
-       | Human interpretation
-       v
-Machine-readable YAML
-       |
-       v
-ScopeGuard
-       |
-       v
-Authorization decision
+<p align="center">
+  <img src="image.png" alt="SafeGuard Security Testing Workflow" width="700">
+</p>
