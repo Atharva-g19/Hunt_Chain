@@ -1,17 +1,27 @@
-# Created by venv; see https://docs.python.org/3/library/venv.html
-
-# Virtual environment
+# Python virtual environments
 .venv/
 
-# Python cache
+# Python cache / compiled files
 __pycache__/
 *.py[cod]
+
+# Python packaging/build artifacts
+*.egg-info/
+build/
+dist/
 
 # Test/cache files
 .pytest_cache/
 
-# Environment variables
+# Environment variables / secrets
 .env
+.env.*
+
+# Runtime output
+output/
+logs/
+**/output/
+**/logs/
 
 # VS Code
 .vscode/

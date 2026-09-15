@@ -1,0 +1,1 @@
+"""Configuration package for Hunt_Chain Project 2."""

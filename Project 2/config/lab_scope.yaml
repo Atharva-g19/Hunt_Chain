@@ -1,0 +1,14 @@
+version: "1"
+
+program:
+  name: "Hunt_Chain Local Recon Lab"
+
+scope:
+  rules:
+    - id: "LAB001"
+      effect: "include"
+      asset:
+        type: "ipv4"
+        value: "127.0.0.1"
+        category: "local_lab"
+      description: "Localhost explicitly authorized for Hunt_Chain laboratory testing"
