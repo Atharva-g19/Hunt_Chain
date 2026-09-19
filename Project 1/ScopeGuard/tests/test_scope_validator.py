@@ -24,7 +24,6 @@ def create_valid_scope(rules=None):
         ]
 
     return Scope(
-        version="1",
         program=Program(
             name="Example Program",
         ),
@@ -48,19 +47,6 @@ def test_none_scope_is_rejected():
         match="Scope cannot be None",
     ):
         validator.validate(None)
-
-
-def test_missing_version_is_rejected():
-    validator = ScopeValidator()
-
-    scope = create_valid_scope()
-    scope.version = ""
-
-    with pytest.raises(
-        ScopeValidationError,
-        match="Scope version is required",
-    ):
-        validator.validate(scope)
 
 
 def test_missing_program_is_rejected():
@@ -274,3 +260,4 @@ def test_empty_asset_value_is_rejected():
         match="Rule S001: asset value cannot be empty",
     ):
         validator.validate(scope)
+

@@ -1,0 +1,14 @@
+version: "v1"
+
+program:
+  name: "Bumba HackerOne Bug Bounty"
+
+scope:
+  rules:
+    - id: "BUMBA-WEB-001"
+      effect: "include"
+      asset:
+        type: "url"
+        value: "https://bumba.global"
+      category: "web"
+      description: "Bumba global web domain listed in the supplied HackerOne program scope."

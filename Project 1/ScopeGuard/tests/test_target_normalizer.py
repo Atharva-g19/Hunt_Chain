@@ -142,12 +142,13 @@ def test_rejects_cidr_target():
         )
 
 
-def test_rejects_ipv6_target():
-    with pytest.raises(ValueError):
-        TargetNormalizer().normalize(
-            "2001:db8::1"
-        )
+def test_accepts_ipv6_target():
+    target = TargetNormalizer().normalize(
+        "2001:db8::1"
+    )
 
+    assert target.type == "ipv6"
+    assert target.normalized_value == "2001:db8::1"
 
 def test_rejects_wildcard_target():
     with pytest.raises(ValueError):
@@ -190,3 +191,4 @@ def test_raw_value_is_preserved():
     )
 
     assert target.raw_value == "  Example.COM.  "
+

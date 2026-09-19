@@ -24,7 +24,6 @@ def write_yaml(tmp_path: Path, data) -> Path:
 
 def test_load_valid_scope(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -47,7 +46,6 @@ def test_load_valid_scope(tmp_path):
 
     scope = YamlScopeLoader().load(path)
 
-    assert scope.version == "1"
     assert scope.program.name == "Example Program"
     assert len(scope.rules) == 1
 
@@ -62,7 +60,6 @@ def test_load_valid_scope(tmp_path):
 
 def test_load_multiple_rules(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -108,7 +105,6 @@ def test_load_multiple_rules(tmp_path):
 
 def test_load_category_and_condition(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -147,25 +143,8 @@ def test_missing_file_raises_error(tmp_path):
         YamlScopeLoader().load(path)
 
 
-def test_missing_version_is_rejected(tmp_path):
-    data = {
-        "program": {
-            "name": "Example Program",
-        },
-        "scope": {
-            "rules": [],
-        },
-    }
-
-    path = write_yaml(tmp_path, data)
-
-    with pytest.raises(ValueError, match="Scope version is required"):
-        YamlScopeLoader().load(path)
-
-
 def test_missing_program_is_rejected(tmp_path):
     data = {
-        "version": "1",
         "scope": {
             "rules": [],
         },
@@ -179,7 +158,6 @@ def test_missing_program_is_rejected(tmp_path):
 
 def test_missing_program_name_is_rejected(tmp_path):
     data = {
-        "version": "1",
         "program": {},
         "scope": {
             "rules": [],
@@ -194,7 +172,6 @@ def test_missing_program_name_is_rejected(tmp_path):
 
 def test_missing_scope_section_is_rejected(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -208,7 +185,6 @@ def test_missing_scope_section_is_rejected(tmp_path):
 
 def test_rules_must_be_a_list(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -225,7 +201,6 @@ def test_rules_must_be_a_list(tmp_path):
 
 def test_invalid_effect_is_rejected(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -251,7 +226,6 @@ def test_invalid_effect_is_rejected(tmp_path):
 
 def test_invalid_asset_type_is_rejected(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -277,7 +251,6 @@ def test_invalid_asset_type_is_rejected(tmp_path):
 
 def test_invalid_asset_value_is_rejected(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -303,7 +276,6 @@ def test_invalid_asset_value_is_rejected(tmp_path):
 
 def test_rule_must_be_a_mapping(tmp_path):
     data = {
-        "version": "1",
         "program": {
             "name": "Example Program",
         },
@@ -319,3 +291,4 @@ def test_rule_must_be_a_mapping(tmp_path):
     with pytest.raises(ValueError, match="Each scope rule must be a mapping"):
         YamlScopeLoader().load(path)
         
+

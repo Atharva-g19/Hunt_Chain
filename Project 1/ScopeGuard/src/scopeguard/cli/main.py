@@ -1,5 +1,6 @@
 import argparse
 import sys
+from pathlib import Path
 
 from ..engine.scope_engine import ScopeEngine
 from ..loaders.yaml_scope_loader import YamlScopeLoader
@@ -40,6 +41,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output the decision as JSON",
     )
 
+    check_parser.add_argument(
+        "--output",
+        help="Write the JSON decision to a file",
+    )
+
     return parser
 
 
@@ -52,6 +58,7 @@ def main() -> int:
             scope_path=args.scope,
             target=args.target,
             json_output=args.json,
+            output_path=args.output,
         )
 
     parser.error("Unknown command")
@@ -62,7 +69,15 @@ def _handle_check(
     scope_path: str,
     target: str,
     json_output: bool = False,
+    output_path: str | None = None,
 ) -> int:
+    if output_path is not None and not json_output:
+        print(
+            "ERROR: --output requires --json",
+            file=sys.stderr,
+        )
+        return 2
+
     try:
         loader = YamlScopeLoader()
         scope = loader.load(scope_path)
@@ -82,7 +97,21 @@ def _handle_check(
 
     if json_output:
         serializer = DecisionSerializer()
-        print(serializer.to_json(decision))
+        serialized = serializer.to_json(decision)
+
+        print(serialized)
+
+        if output_path is not None:
+            output_file = Path(output_path)
+            output_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
+            output_file.write_text(
+                serialized + "\n",
+                encoding="utf-8",
+            )
+
     else:
         _print_human_readable(decision)
 

@@ -16,12 +16,10 @@ def test_scope_creation():
     )
 
     scope = Scope(
-        version="1",
         program=Program(name="Example Program"),
         rules=[rule]
     )
-
-    assert scope.version == "1"
     assert scope.program.name == "Example Program"
     assert len(scope.rules) == 1
     assert scope.rules[0].id == "S001"
+

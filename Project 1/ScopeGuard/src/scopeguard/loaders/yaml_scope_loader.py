@@ -30,7 +30,10 @@ class YamlScopeLoader:
             else AssetValidator()
         )
 
-    def load(self, path: str | Path) -> Scope:
+    def load(
+        self,
+        path: str | Path,
+    ) -> Scope:
         file_path = Path(path)
 
         if not file_path.exists():
@@ -54,7 +57,9 @@ class YamlScopeLoader:
         self._scope_validator.validate(scope)
 
         for rule in scope.rules:
-            self._asset_validator.validate(rule.asset)
+            self._asset_validator.validate(
+                rule.asset
+            )
 
         return scope
 
@@ -62,13 +67,6 @@ class YamlScopeLoader:
         if not isinstance(data, dict):
             raise ValueError(
                 "Scope YAML must contain a mapping"
-            )
-
-        version = data.get("version")
-
-        if version is None:
-            raise ValueError(
-                "Scope version is required"
             )
 
         program_data = data.get("program")
@@ -92,7 +90,10 @@ class YamlScopeLoader:
                 "Scope section is required"
             )
 
-        rules_data = scope_data.get("rules", [])
+        rules_data = scope_data.get(
+            "rules",
+            [],
+        )
 
         if not isinstance(rules_data, list):
             raise ValueError(
@@ -105,14 +106,16 @@ class YamlScopeLoader:
         ]
 
         return Scope(
-            version=str(version),
             program=Program(
                 name=program_name,
             ),
             rules=rules,
         )
 
-    def _build_rule(self, data) -> ScopeRule:
+    def _build_rule(
+        self,
+        data,
+    ) -> ScopeRule:
         if not isinstance(data, dict):
             raise ValueError(
                 "Each scope rule must be a mapping"
@@ -142,33 +145,44 @@ class YamlScopeLoader:
                 f"Asset is required for rule {rule_id}"
             )
 
-        asset_type_value = asset_data.get("type")
-        asset_value = asset_data.get("value")
+        asset_type_value = asset_data.get(
+            "type"
+        )
+
+        asset_value = asset_data.get(
+            "value"
+        )
 
         try:
-            asset_type = AssetType(asset_type_value)
+            asset_type = AssetType(
+                asset_type_value
+            )
         except ValueError as exc:
             raise ValueError(
-                f"Invalid asset type for rule {rule_id}: "
-                f"{asset_type_value}"
+                f"Invalid asset type for rule "
+                f"{rule_id}: {asset_type_value}"
             ) from exc
 
         if not isinstance(asset_value, str):
             raise ValueError(
-                f"Asset value is required for rule {rule_id}"
+                f"Asset value is required for "
+                f"rule {rule_id}"
             )
-
-        asset = Asset(
-            type=asset_type,
-            value=asset_value,
-        )
 
         return ScopeRule(
             id=rule_id,
             effect=effect,
-            asset=asset,
-            category=asset_data.get("category"),
-            description=data.get("description"),
-            condition=data.get("condition"),
+            asset=Asset(
+                type=asset_type,
+                value=asset_value,
+            ),
+            category=asset_data.get(
+                "category"
+            ),
+            description=data.get(
+                "description"
+            ),
+            condition=data.get(
+                "condition"
+            ),
         )
-    

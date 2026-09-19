@@ -1,10 +1,15 @@
+import ipaddress
 from urllib.parse import urlparse
 
 from ..models.asset_type import AssetType
 
 
 class SpecificityCalculator:
-    def calculate(self, asset_type: AssetType, asset_value: str) -> int:
+    def calculate(
+        self,
+        asset_type: AssetType,
+        asset_value: str,
+    ) -> int:
         if asset_type == AssetType.HOSTNAME:
             return 100
 
@@ -15,17 +20,32 @@ class SpecificityCalculator:
             return 100
 
         if asset_type == AssetType.URL_PATH_WILDCARD:
-            return 50 + self._url_path_depth(asset_value)
+            return 50 + self._url_path_depth(
+                asset_value
+            )
 
         if asset_type == AssetType.IPV4:
             return 100
 
         if asset_type == AssetType.IPV4_CIDR:
-            return self._cidr_specificity(asset_value)
+            return self._cidr_prefix_length(
+                asset_value
+            )
+
+        if asset_type == AssetType.IPV6:
+            return 100
+
+        if asset_type == AssetType.IPV6_CIDR:
+            return self._cidr_prefix_length(
+                asset_value
+            )
 
         return 0
 
-    def _url_path_depth(self, value: str) -> int:
+    def _url_path_depth(
+        self,
+        value: str,
+    ) -> int:
         parsed = urlparse(value)
 
         path = parsed.path
@@ -35,21 +55,27 @@ class SpecificityCalculator:
 
         path = path.rstrip("/")
 
-        if not path or path == "/":
+        if not path:
             return 0
 
-        segments = [
-            segment
-            for segment in path.split("/")
-            if segment
-        ]
+        return len(
+            [
+                segment
+                for segment in path.split("/")
+                if segment
+            ]
+        )
 
-        return len(segments)
-
-    def _cidr_specificity(self, value: str) -> int:
+    def _cidr_prefix_length(
+        self,
+        value: str,
+    ) -> int:
         try:
-            prefix_length = int(value.rsplit("/", 1)[1])
-        except (ValueError, IndexError):
+            network = ipaddress.ip_network(
+                value.strip(),
+                strict=True,
+            )
+        except ValueError:
             return 0
 
-        return prefix_length
+        return network.prefixlen

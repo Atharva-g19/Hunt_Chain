@@ -1,0 +1,13 @@
+version: "1"
+
+program:
+  name: "Example Program"
+
+scope:
+  rules:
+    - id: "S001"
+      effect: "include"
+      asset:
+        type: "hostname"
+        value: "example.com"
+      description: "Explicitly listed production hostname"

@@ -1,0 +1,14 @@
+﻿version: "v1"
+
+program:
+  name: "OWASP Juice Shop Security Testing"
+
+scope:
+  rules:
+    - id: "JUICE-SHOP-WEB-001"
+      effect: "include"
+      asset:
+        type: "url"
+        value: "https://demo.owasp-juice.shop"
+      category: "web"
+      description: "Authorized OWASP Juice Shop training target for non-destructive security testing."

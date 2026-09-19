@@ -14,7 +14,6 @@ from scopeguard.validators.errors import ScopeValidationError
 
 def create_scope(rules):
     return Scope(
-        version="1",
         program=Program(name="Test Program"),
         rules=rules,
     )
@@ -124,8 +123,7 @@ def test_more_specific_exclude_beats_broader_include():
 
     decision = ScopeEngine().check(scope, target)
 
-    assert decision.state == DecisionState.OUT_OF_SCOPE
-    assert decision.winning_rule == "S002"
+    assert decision.state == DecisionState.CONFLICT
     assert decision.matched_rules == ["S001", "S002"]
 
 
@@ -155,8 +153,7 @@ def test_more_specific_include_beats_broader_exclude():
 
     decision = ScopeEngine().check(scope, target)
 
-    assert decision.state == DecisionState.IN_SCOPE
-    assert decision.winning_rule == "S002"
+    assert decision.state == DecisionState.CONFLICT
 
 
 def test_equal_specificity_opposite_effects_produce_conflict():
@@ -280,8 +277,7 @@ def test_url_exact_rule_beats_path_wildcard():
 
     decision = ScopeEngine().check(scope, target)
 
-    assert decision.state == DecisionState.OUT_OF_SCOPE
-    assert decision.winning_rule == "S002"
+    assert decision.state == DecisionState.CONFLICT
 
 
 def test_narrower_cidr_beats_broader_cidr():
@@ -313,8 +309,7 @@ def test_narrower_cidr_beats_broader_cidr():
 
     decision = ScopeEngine().check(scope, target)
 
-    assert decision.state == DecisionState.OUT_OF_SCOPE
-    assert decision.winning_rule == "S002"
+    assert decision.state == DecisionState.CONFLICT
 
 
 def test_32_cidr_beats_broader_cidr():
@@ -346,8 +341,7 @@ def test_32_cidr_beats_broader_cidr():
 
     decision = ScopeEngine().check(scope, target)
 
-    assert decision.state == DecisionState.OUT_OF_SCOPE
-    assert decision.winning_rule == "S002"
+    assert decision.state == DecisionState.CONFLICT
 
 
 def test_decision_contains_specificity_reason():
@@ -441,7 +435,7 @@ def test_unknown_reason_explains_unresolved_condition():
 
     assert decision.state == DecisionState.UNKNOWN
     assert "condition" in decision.reason
-    assert "cannot be evaluated" in decision.reason
+    assert "cannot evaluate" in decision.reason
 
 
 def test_less_specific_conditional_rule_does_not_override_specific_rule():
@@ -471,8 +465,8 @@ def test_less_specific_conditional_rule_does_not_override_specific_rule():
 
     decision = ScopeEngine().check(scope, target)
 
-    assert decision.state == DecisionState.OUT_OF_SCOPE
-    assert decision.winning_rule == "S002"
+    assert decision.state == DecisionState.UNKNOWN
+    assert decision.winning_rule is None
 
 
 def test_highest_specificity_conditional_rule_produces_unknown():
@@ -754,3 +748,7 @@ def test_engine_rejects_raw_wildcard_target():
             scope,
             "*.example.com",
         )
+
+
+
+

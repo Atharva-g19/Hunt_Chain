@@ -12,7 +12,6 @@ from scopeguard import (
 
 def test_scopeguard_public_api():
     scope = Scope(
-        version="1",
         program=Program(
             name="Example Program"
         ),
@@ -39,7 +38,6 @@ def test_scopeguard_public_api():
 
 def test_public_api_supports_out_of_scope_decision():
     scope = Scope(
-        version="1",
         program=Program(
             name="Example Program"
         ),
@@ -65,7 +63,6 @@ def test_public_api_supports_out_of_scope_decision():
 
 def test_public_api_supports_wildcard_scope():
     scope = Scope(
-        version="1",
         program=Program(
             name="Example Program"
         ),

@@ -10,14 +10,14 @@ class ScopeValidator:
                 "Scope cannot be None"
             )
 
-        if not scope.version:
-            raise ScopeValidationError(
-                "Scope version is required"
-            )
-
         if scope.program is None:
             raise ScopeValidationError(
                 "Program is required"
+            )
+
+        if not isinstance(scope.program.name, str):
+            raise ScopeValidationError(
+                "Program name must be a string"
             )
 
         if not scope.program.name.strip():
@@ -25,12 +25,24 @@ class ScopeValidator:
                 "Program name cannot be empty"
             )
 
+        if not isinstance(scope.rules, list):
+            raise ScopeValidationError(
+                "Scope rules must be a list"
+            )
+
         rule_ids = set()
 
         for rule in scope.rules:
-            self._validate_rule(rule, rule_ids)
+            self._validate_rule(
+                rule,
+                rule_ids,
+            )
 
-    def _validate_rule(self, rule, rule_ids: set[str]) -> None:
+    def _validate_rule(
+        self,
+        rule,
+        rule_ids: set[str],
+    ) -> None:
         if rule is None:
             raise ScopeValidationError(
                 "Scope rule cannot be None"
@@ -77,3 +89,14 @@ class ScopeValidator:
             raise ScopeValidationError(
                 f"Rule {rule.id}: asset value cannot be empty"
             )
+
+        if rule.condition is not None:
+            if not isinstance(rule.condition, str):
+                raise ScopeValidationError(
+                    f"Rule {rule.id}: condition must be a string"
+                )
+
+            if not rule.condition.strip():
+                raise ScopeValidationError(
+                    f"Rule {rule.id}: condition cannot be empty"
+                )
