@@ -1,4 +1,4 @@
-"""ScopeGuard authorization adapter for Hunt_Chain Project 2.
+﻿"""ScopeGuard authorization adapter for Hunt_Chain Project 2.
 
 The adapter provides the integration boundary between Project 2 and
 Project 1 (ScopeGuard).
@@ -146,7 +146,6 @@ class ScopeGuardAdapter(AuthorizationProvider):
             metadata={
                 "scopeguard_scope_file": str(scope_path),
                 "scopeguard_program": scope.program.name,
-                "scopeguard_version": scope.version,
                 "matched_rules": list(decision.matched_rules),
                 "winning_rule": decision.winning_rule,
             },

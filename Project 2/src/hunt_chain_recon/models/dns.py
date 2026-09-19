@@ -19,6 +19,7 @@ This module performs no DNS queries and no network activity.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from enum import Enum
 from uuid import UUID, uuid4
 
@@ -94,6 +95,10 @@ class DNSObservation(BaseModel):
     )
     records: list[DNSRecord] = Field(
         default_factory=list
+    )
+    observed_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="UTC timestamp when this DNS observation was collected.",
     )
     error: str | None = None
 

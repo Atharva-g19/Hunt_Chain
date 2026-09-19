@@ -32,8 +32,16 @@ DEFAULT_CONFIG_PATH = PROJECT_ROOT / "config" / "default.yaml"
 
 
 def make_context() -> PipelineContext:
-    """Create an authorized pipeline context."""
+    """Create an authorized deterministic test pipeline context."""
     config = load_config(DEFAULT_CONFIG_PATH)
+
+    # Integration tests must never execute real discovery providers.
+    # Only the explicitly registered fixture provider is used.
+    config.discovery.providers = {
+        "fixture_discovery": {
+            "enabled": True,
+        }
+    }
 
     authorization = AuthorizationResult(
         decision="IN_SCOPE",

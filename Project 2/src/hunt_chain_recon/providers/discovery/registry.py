@@ -17,6 +17,7 @@ from hunt_chain_recon.providers.discovery.base import DiscoveryProvider
 from hunt_chain_recon.providers.discovery.certificate_transparency import (
     CertificateTransparencyProvider,
 )
+from hunt_chain_recon.providers.discovery.cli import AmassProvider, SubfinderProvider
 
 
 class DiscoveryProviderError(Exception):
@@ -40,6 +41,8 @@ class DiscoveryProviderRegistry:
         """Initialize the registry with built-in V1 providers."""
         self._factories: dict[str, DiscoveryProviderFactory] = {
             "certificate_transparency": CertificateTransparencyProvider,
+            "subfinder": SubfinderProvider,
+            "amass": AmassProvider,
         }
 
     def register(

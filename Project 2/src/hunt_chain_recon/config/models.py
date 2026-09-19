@@ -11,7 +11,7 @@ class TargetConfig(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     value: str = Field(min_length=1)
-    type: Literal["DOMAIN", "HOSTNAME", "IP_ADDRESS"]
+    type: Literal["DOMAIN", "HOSTNAME", "IP_ADDRESS", "URL"]
 
 
 class AuthorizationConfig(BaseModel):

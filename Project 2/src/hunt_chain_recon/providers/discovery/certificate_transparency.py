@@ -27,7 +27,10 @@ correlation are handled by later Project 2 processing stages.
 
 from __future__ import annotations
 
+import json
 from typing import Any
+from urllib.parse import quote
+from urllib.request import Request, urlopen
 
 from hunt_chain_recon.providers.base import (
     ProviderError,
@@ -49,6 +52,8 @@ class CertificateTransparencyProvider(DiscoveryProvider):
 
     name = "certificate-transparency"
     version = "1.0.0"
+    SOURCE_URL = "https://crt.sh/?q=%25.{domain}&output=json"
+    DEFAULT_TIMEOUT_SECONDS = 10.0
 
     @property
     def capabilities(self) -> tuple[str, ...]:
@@ -164,13 +169,43 @@ class CertificateTransparencyProvider(DiscoveryProvider):
         This method is intentionally isolated so the source transport can
         be replaced or mocked in tests.
 
-        The V1 implementation does not silently fabricate CT results.
-        A concrete network source will be connected through this method
-        once the provider's transport layer is introduced.
+        The source request is made only through DiscoveryStage, which
+        enforces the shared authorization and politeness boundaries.
+        Tests replace this method, so no test needs Internet access.
         """
-        raise NotImplementedError(
-            "Certificate Transparency source transport is not connected yet."
+        encoded_domain = quote(domain, safe="")
+        url = self.SOURCE_URL.format(domain=encoded_domain)
+        request = Request(
+            url,
+            headers={
+                "Accept": "application/json",
+                "User-Agent": "Hunt-Chain-Recon/0.1",
+            },
         )
+
+        with urlopen(
+            request,
+            timeout=self.DEFAULT_TIMEOUT_SECONDS,
+        ) as response:
+            payload = response.read()
+
+        try:
+            decoded = json.loads(payload.decode("utf-8"))
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ValueError(
+                "Certificate Transparency source returned invalid JSON."
+            ) from exc
+
+        if not isinstance(decoded, list):
+            raise ValueError(
+                "Certificate Transparency source returned a non-list payload."
+            )
+
+        return [
+            record
+            for record in decoded
+            if isinstance(record, dict)
+        ]
 
     def _extract_observations(
         self,

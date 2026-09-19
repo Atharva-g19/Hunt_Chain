@@ -109,6 +109,12 @@ class TechnologyFingerprinter:
             TechnologyCategory.PROGRAMMING_LANGUAGE,
             "server_header_python_simplehttp",
         ),
+        (
+            re.compile(r"\bcloudflare\b", re.IGNORECASE),
+            "Cloudflare",
+            TechnologyCategory.CDN,
+            "server_header_cloudflare",
+        ),
     )
 
     _POWERED_BY_RULES = (
@@ -142,6 +148,27 @@ class TechnologyFingerprinter:
             "Express",
             TechnologyCategory.WEB_FRAMEWORK,
             "powered_by_express",
+        ),
+    )
+
+    _HEADER_PRESENCE_RULES = (
+        (
+            "x-nextjs-cache",
+            "Next.js",
+            TechnologyCategory.WEB_FRAMEWORK,
+            "header_x_nextjs_cache",
+        ),
+        (
+            "x-nextjs-prerender",
+            "Next.js",
+            TechnologyCategory.WEB_FRAMEWORK,
+            "header_x_nextjs_prerender",
+        ),
+        (
+            "x-nextjs-stale-time",
+            "Next.js",
+            TechnologyCategory.WEB_FRAMEWORK,
+            "header_x_nextjs_stale_time",
         ),
     )
 
@@ -245,6 +272,12 @@ class TechnologyFingerprinter:
 
         matches.extend(
             self._fingerprint_powered_by(
+                normalized_headers
+            )
+        )
+
+        matches.extend(
+            self._fingerprint_header_presence(
                 normalized_headers
             )
         )
@@ -429,6 +462,35 @@ class TechnologyFingerprinter:
                     observation=(
                         "HTTP X-Powered-By header observed: "
                         f"{value}"
+                    ),
+                    rule=rule,
+                    confidence=TechnologyConfidence.HIGH,
+                )
+            )
+
+        return matches
+
+    @classmethod
+    def _fingerprint_header_presence(
+        cls,
+        headers: Mapping[str, str],
+    ) -> list[_FingerprintMatch]:
+        """Identify technologies from generic framework header names."""
+        matches: list[_FingerprintMatch] = []
+
+        for header, name, category, rule in cls._HEADER_PRESENCE_RULES:
+            if header not in headers:
+                continue
+
+            matches.append(
+                _FingerprintMatch(
+                    name=name,
+                    category=category,
+                    version=None,
+                    evidence_type=TechnologyEvidenceType.HTTP_HEADER,
+                    observation=(
+                        f"HTTP header observed: {header}: "
+                        f"{headers[header]}"
                     ),
                     rule=rule,
                     confidence=TechnologyConfidence.HIGH,

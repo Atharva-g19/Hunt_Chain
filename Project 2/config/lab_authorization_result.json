@@ -1,0 +1,13 @@
+﻿{
+  "state": "IN_SCOPE",
+  "target": {
+    "raw_value": "127.0.0.1",
+    "normalized_value": "127.0.0.1",
+    "type": "IP_ADDRESS"
+  },
+  "matched_rules": [
+    "LOCAL-LAB-001"
+  ],
+  "winning_rule": "LOCAL-LAB-001",
+  "reason": "Explicitly authorized local laboratory target."
+}

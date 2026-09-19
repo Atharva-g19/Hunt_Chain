@@ -11,8 +11,11 @@ from hunt_chain_recon.providers.discovery.base import DiscoveryProvider
 from hunt_chain_recon.providers.discovery.certificate_transparency import (
     CertificateTransparencyProvider,
 )
+from hunt_chain_recon.providers.discovery.cli import AmassProvider, SubfinderProvider
 
 __all__ = [
     "CertificateTransparencyProvider",
+    "SubfinderProvider",
+    "AmassProvider",
     "DiscoveryProvider",
 ]

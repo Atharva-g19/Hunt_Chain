@@ -1,17 +1,12 @@
-# Hunt_Chain Project 2
-# Default reconnaissance configuration.
-#
-# This configuration is intentionally conservative.
-# Project 2 must obtain an authorization decision from
-# ScopeGuard before any target interaction is permitted.
-
 target:
-  value: "example.com"
-  type: "DOMAIN"
+  value: "https://demo.owasp-juice.shop"
+  type: "URL"
+
 
 authorization:
   provider: "scopeguard"
-  reference: "REPLACE_WITH_SCOPEGUARD_REFERENCE"
+  reference: "SCOPEGUARD_MY_TEST_SCOPE"
+  scope_file: "D:/Coding/z-Project/Hunt_Chain/Project 1/ScopeGuard/scopes/My_Test_Scope.yaml"
 
 execution:
   mode: "active"
@@ -29,10 +24,8 @@ dns:
     - AAAA
     - CNAME
   timeout_seconds: 5
-
   wildcard_detection:
     enabled: true
-
   dangling_cname_detection:
     enabled: true
 
@@ -50,14 +43,12 @@ http:
   follow_redirects: true
   max_redirects: 5
   verify_tls: true
-
   response:
     collect_headers: true
     collect_body_hash: true
 
 fingerprinting:
   enabled: true
-
   response_hash:
     enabled: true
     algorithm: "sha256"
@@ -68,20 +59,19 @@ technology:
 infrastructure:
   enabled: true
   shared_ip_detection: true
-
   provider_identification:
     enabled: true
 
 output:
   directory: "./output"
-
   formats:
     json: true
     report: true
-
   json:
     schema_version: "v1"
 
 logging:
   level: "INFO"
   file: "./logs/recon.log"
+
+

@@ -232,11 +232,34 @@ def test_ct_source_network_error_is_reported() -> None:
     assert result.errors[0].retryable is True
 
 
-def test_ct_source_transport_is_not_silently_fabricated() -> None:
-    """Verify the real provider does not invent CT observations."""
+def test_ct_source_transport_parses_structured_response(
+    monkeypatch,
+) -> None:
+    """The concrete transport returns only structured CT records."""
     provider = CertificateTransparencyProvider()
+
+    class FakeResponse:
+        def read(self):
+            return b'[{"name_value": "api.example.com"}, 42]'
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, traceback):
+            return False
+
+    monkeypatch.setattr(
+        "hunt_chain_recon.providers.discovery.certificate_transparency.urlopen",
+        lambda request, timeout: FakeResponse(),
+    )
 
     result = provider.discover("example.com")
 
-    assert result.status.value == "FAILED"
-    assert result.errors[0].type.value == "EXECUTION_ERROR"
+    assert result.status.value == "SUCCESS"
+    assert result.observations == [
+        {
+            "value": "api.example.com",
+            "type": "HOSTNAME",
+            "source": "certificate-transparency",
+        }
+    ]

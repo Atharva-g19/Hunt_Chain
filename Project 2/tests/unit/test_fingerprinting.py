@@ -61,6 +61,23 @@ def test_server_header_detection_is_case_insensitive() -> None:
     )
 
 
+def test_cloudflare_and_nextjs_headers_produce_evidence() -> None:
+    """Generic CDN/framework headers are retained as technology evidence."""
+    result = TechnologyFingerprinter().fingerprint(
+        endpoint=make_endpoint(),
+        headers={
+            "Server": "cloudflare",
+            "X-Nextjs-Cache": "HIT",
+        },
+        body=b"",
+    )
+
+    assert {(technology.name, technology.category) for technology in result.technologies} == {
+        ("Cloudflare", TechnologyCategory.CDN),
+        ("Next.js", TechnologyCategory.WEB_FRAMEWORK),
+    }
+
+
 def test_server_header_detects_python_simplehttp() -> None:
     """SimpleHTTP Python server header produces Python evidence."""
     endpoint = make_endpoint()

@@ -121,16 +121,6 @@ class DiscoveryStage:
             context
         )
 
-        if not configured_providers or all(
-            provider_name == "certificate_transparency"
-            for provider_name in configured_providers
-        ):
-            for provider_name in self._registry.available():
-                if provider_name not in configured_providers:
-                    configured_providers[provider_name] = {
-                        "enabled": True,
-                    }
-
         for provider_name, provider_config in configured_providers.items():
             if isinstance(provider_config, dict):
                 enabled = provider_config.get("enabled", True)
@@ -151,9 +141,14 @@ class DiscoveryStage:
                 ) from exc
 
             try:
-                result = provider.discover(
-                    context.target()
-                )
+                # Discovery sources may use network transport internally.
+                # Keep every provider invocation inside the shared rate and
+                # concurrency controller rather than giving adapters an
+                # uncontrolled request path.
+                with context.politeness.operation():
+                    result = provider.discover(
+                        context.target()
+                    )
             except Exception as exc:
                 raise DiscoveryStageError(
                     f"Discovery provider '{provider_name}' failed: {exc}"

@@ -616,13 +616,25 @@ def test_discovery_stage_rejects_unknown_provider():
         stage.execute(context)
 
 
-def test_discovery_stage_uses_default_registry():
+def test_discovery_stage_uses_default_registry(
+    monkeypatch: pytest.MonkeyPatch,
+):
     """The stage creates the built-in registry when none is supplied."""
     config = make_config_with_provider(
         "certificate_transparency"
     )
 
     context = make_context_with_config(config)
+
+    monkeypatch.setattr(
+        "hunt_chain_recon.providers.discovery.certificate_transparency.CertificateTransparencyProvider.discover",
+        lambda self, target: ProviderResult(
+            status="SUCCESS",
+            observations=[],
+            provider="certificate-transparency",
+            version="1.0.0",
+        ),
+    )
 
     stage = DiscoveryStage()
 
@@ -641,14 +653,18 @@ def test_discovery_stage_uses_default_registry():
         "certificate_transparency"
     ]
 
-    assert provider_result.status.value == "FAILED"
+    assert provider_result.status.value == "SUCCESS"
 
 
 def test_discovery_stage_skips_disabled_provider():
     """Disabled discovery providers are not executed."""
     config = load_config(DEFAULT_CONFIG_PATH)
 
-    config.discovery.providers.certificate_transparency.enabled = False
+    config.discovery.providers = {
+        "certificate_transparency": {
+            "enabled": False,
+        }
+    }
 
     context = make_context_with_config(config)
 

@@ -1,4 +1,4 @@
-"""Tests for the Hunt_Chain Project 2 discovery-provider registry."""
+﻿"""Tests for the Hunt_Chain Project 2 discovery-provider registry."""
 
 from __future__ import annotations
 
@@ -35,7 +35,9 @@ def test_registry_contains_builtin_certificate_transparency_provider():
     registry = DiscoveryProviderRegistry()
 
     assert registry.available() == (
+        "amass",
         "certificate_transparency",
+        "subfinder",
     )
 
 
@@ -167,7 +169,9 @@ def test_registry_available_is_deterministically_sorted():
 
     assert registry.available() == (
         "alpha",
+        "amass",
         "certificate_transparency",
+        "subfinder",
         "zeta",
     )
 

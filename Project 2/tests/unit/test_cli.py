@@ -36,6 +36,7 @@ def build_args(
     output: str | Path | None = None,
     no_json: bool = False,
     no_report: bool = False,
+    authorization_artifact: str | Path | None = None,
 ) -> Namespace:
     """Build CLI arguments for tests."""
     return Namespace(
@@ -43,6 +44,11 @@ def build_args(
         output=None if output is None else str(output),
         no_json=no_json,
         no_report=no_report,
+        authorization_artifact=(
+            None
+            if authorization_artifact is None
+            else str(authorization_artifact)
+        ),
     )
 
 
@@ -59,12 +65,16 @@ def build_authorization(
     )
 
 
-def test_parser_requires_config() -> None:
-    """The CLI must require a configuration path."""
+def test_parser_allows_config_omission_for_artifact_mode() -> None:
+    """Artifact mode can use the default recon configuration."""
     parser = build_parser()
 
-    with pytest.raises(SystemExit):
-        parser.parse_args([])
+    args = parser.parse_args(
+        ["--authorization-artifact", "authorization_result.json"]
+    )
+
+    assert args.config is None
+    assert args.authorization_artifact == "authorization_result.json"
 
 
 def test_parser_accepts_output_override() -> None:
@@ -354,3 +364,97 @@ def test_run_cli_handles_blocked_pipeline(
     result = run_cli(build_args())
 
     assert result == 3
+
+
+
+
+def test_run_cli_with_authorization_artifact(
+    monkeypatch,
+    tmp_path,
+):
+    """CLI should consume a Project 1 authorization artifact."""
+    from argparse import Namespace
+
+    artifact = tmp_path / "authorization_result.json"
+
+    artifact.write_text(
+        """
+{
+  "state": "IN_SCOPE",
+  "target": {
+    "raw_value": "https://example.com",
+    "normalized_value": "https://example.com",
+    "type": "url"
+  },
+  "matched_rules": [
+    "TEST-WEB-001"
+  ],
+  "winning_rule": "TEST-WEB-001",
+  "reason": "Test authorization"
+}
+""".strip(),
+        encoding="utf-8",
+    )
+
+    class FakeRunnerResult:
+        pipeline_blocked = False
+        pipeline_completed = True
+        output = None
+
+    def fake_run(
+        self,
+        config,
+        authorization,
+        output_directory=None,
+        json_enabled=True,
+        report_enabled=True,
+    ):
+        assert authorization.is_authorized is True
+        assert authorization.provider == "scopeguard"
+        assert authorization.reference == "TEST-WEB-001"
+        assert authorization.target == "https://example.com"
+        assert config.target.value == "https://example.com"
+        assert config.target.type == "URL"
+        assert config.authorization.reference == "TEST-WEB-001"
+
+        return FakeRunnerResult()
+
+    monkeypatch.setattr(
+        "hunt_chain_recon.cli.commands.ApplicationRunner.run",
+        fake_run,
+    )
+
+    args = Namespace(
+        config=None,
+        authorization_artifact=str(artifact),
+        output=None,
+        no_json=False,
+        no_report=False,
+    )
+
+    from hunt_chain_recon.cli.commands import run_cli
+
+    assert run_cli(args) == 0
+
+
+def test_run_cli_rejects_mismatched_explicit_artifact_config(
+    tmp_path: Path,
+) -> None:
+    """An explicit target cannot contradict the artifact target."""
+    artifact = tmp_path / "authorization_result.json"
+    artifact.write_text(
+        '''{"state":"IN_SCOPE","target":{"raw_value":"https://example.com","normalized_value":"https://example.com","type":"url"},"matched_rules":["TEST-001"],"winning_rule":"TEST-001","reason":"test"}''',
+        encoding="utf-8",
+    )
+    config = tmp_path / "recon.yaml"
+    config.write_text(
+        """target:\n  value: different.example.com\n  type: DOMAIN\nauthorization:\n  provider: scopeguard\n  reference: test\n""",
+        encoding="utf-8",
+    )
+
+    assert run_cli(
+        build_args(
+            config=config,
+            authorization_artifact=artifact,
+        )
+    ) == 2

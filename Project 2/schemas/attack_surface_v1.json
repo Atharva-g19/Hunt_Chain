@@ -126,7 +126,8 @@
           "enum": [
             "DOMAIN",
             "HOSTNAME",
-            "IP_ADDRESS"
+            "IP_ADDRESS",
+            "URL"
           ]
         }
       }

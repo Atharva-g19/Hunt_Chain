@@ -134,6 +134,44 @@ class JSONOutputWriter:
 
         return schema
 
+    @staticmethod
+    def _normalize_dns_observations(document: dict[str, Any]) -> None:
+        """Normalize DNS observations to the stable Project 2 V1 JSON schema."""
+        observations = document.get("dns_observations")
+
+        if not isinstance(observations, list):
+            return
+
+        for observation in observations:
+            if not isinstance(observation, dict):
+                continue
+
+            # V1 uses `state`, while older internal representations used
+            # `status` and optional `error`.
+            if "state" not in observation:
+                status = observation.pop("status", None)
+                if status is not None:
+                    observation["state"] = status
+
+            # `error` is an internal/provider detail and is not part of
+            # the stable V1 attack-surface JSON contract.
+            observation.pop("error", None)
+
+            records = observation.get("records")
+            if not isinstance(records, list):
+                continue
+
+            for record in records:
+                if not isinstance(record, dict):
+                    continue
+
+                # V1 uses `type`; older internal representations used
+                # `record_type`.
+                if "type" not in record:
+                    record_type = record.pop("record_type", None)
+                    if record_type is not None:
+                        record["type"] = record_type
+
     def validate(
         self,
         document: dict[str, Any],
@@ -150,6 +188,8 @@ class JSONOutputWriter:
             raise TypeError(
                 "Expected serialized AttackSurface dictionary"
             )
+
+        self._normalize_dns_observations(document)
 
         schema = self._load_schema()
 

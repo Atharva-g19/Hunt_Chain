@@ -14,9 +14,24 @@ from hunt_chain_recon.authorization.adapter import (
     AuthorizationError,
     ScopeGuardAdapter,
 )
+from hunt_chain_recon.authorization.artifact import (
+    AuthorizationArtifactError,
+    ScopeGuardArtifactLoader,
+)
+from hunt_chain_recon.authorization.models import AuthorizationResult
 from hunt_chain_recon.config.loader import (
     ConfigurationError,
     load_config,
+)
+from hunt_chain_recon.config.models import (
+    AuthorizationConfig,
+    ReconConfig,
+    TargetConfig,
+)
+
+
+DEFAULT_CONFIG_PATH = (
+    Path(__file__).resolve().parents[3] / "config" / "default.yaml"
 )
 
 
@@ -31,6 +46,16 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     parser.add_argument(
+        "authorization_artifact_positional",
+        nargs="?",
+        metavar="AUTHORIZATION_ARTIFACT",
+        help=(
+            "Path to the Project 1 ScopeGuard "
+            "authorization_result.json artifact."
+        ),
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=__version__,
@@ -40,16 +65,25 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--config",
         metavar="PATH",
-        required=True,
-        help="Path to the YAML reconnaissance configuration.",
+        help=(
+            "Optional path to the YAML reconnaissance configuration. "
+            "The default recon configuration is used when omitted."
+        ),
+    )
+
+    parser.add_argument(
+        "--authorization-artifact",
+        metavar="PATH",
+        help=(
+            "Path to the Project 1 ScopeGuard "
+            "authorization_result.json artifact."
+        ),
     )
 
     parser.add_argument(
         "--output",
         metavar="PATH",
-        help=(
-            "Override the output directory configured in YAML."
-        ),
+        help="Override the output directory configured in YAML.",
     )
 
     parser.add_argument(
@@ -67,78 +101,214 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def run_cli(args: argparse.Namespace) -> int:
-    """Execute the CLI using parsed arguments."""
-    try:
-        config = load_config(args.config)
-    except ConfigurationError as exc:
-        print(f"Configuration error: {exc}")
-        return 2
+def _artifact_target_type(
+    authorization: AuthorizationResult,
+) -> str:
+    """Return the Project 2 target type represented by an artifact."""
+    artifact_type = authorization.metadata.get("target_type")
 
-    target = (
+    if not isinstance(artifact_type, str):
+        raise AuthorizationArtifactError(
+            "Authorization artifact target.type must be a string."
+        )
+
+    normalized_type = artifact_type.strip().upper()
+
+    type_mapping = {
+        "DOMAIN": "DOMAIN",
+        "HOSTNAME": "HOSTNAME",
+        "IP_ADDRESS": "IP_ADDRESS",
+        "IP": "IP_ADDRESS",
+        "IPV4": "IP_ADDRESS",
+        "IPV6": "IP_ADDRESS",
+        "URL": "URL",
+    }
+
+    try:
+        return type_mapping[normalized_type]
+    except KeyError as exc:
+        raise AuthorizationArtifactError(
+            "Authorization artifact target.type is unsupported: "
+            f"{artifact_type!r}."
+        ) from exc
+
+
+def _apply_artifact_context(
+    config: ReconConfig,
+    authorization: AuthorizationResult,
+    *,
+    explicit_config: bool,
+) -> ReconConfig:
+    """Bind artifact authorization and target context to recon config."""
+    target_type = _artifact_target_type(authorization)
+
+    configured_target = (
         config.target.value.strip().lower().rstrip(".")
     )
 
-    print("Hunt_Chain Project 2")
-    print("--------------------")
-    print(f"Target: {target}")
-    print(f"Target type: {config.target.type}")
-    print(f"Execution mode: {config.execution.mode}")
-    print()
+    authorized_target = (
+        authorization.target.strip().lower().rstrip(".")
+    )
 
-    authorization_provider = ScopeGuardAdapter()
-
-    try:
-        authorization = authorization_provider.evaluate(
-            target,
-            config.authorization,
+    if explicit_config and configured_target != authorized_target:
+        raise ConfigurationError(
+            "Configured target does not match authorization artifact target."
         )
-    except AuthorizationError as exc:
-        print(f"Authorization blocked: {exc}")
-        return 3
 
-    if not authorization.is_authorized:
+    if explicit_config and config.target.type != target_type:
+        raise ConfigurationError(
+            "Configured target type does not match authorization artifact "
+            "target type."
+        )
+
+    return config.model_copy(
+        update={
+            "target": TargetConfig(
+                value=authorization.target,
+                type=target_type,
+            ),
+            "authorization": AuthorizationConfig(
+                provider=authorization.provider,
+                reference=authorization.reference,
+            ),
+        }
+    )
+
+
+def run_cli(args: argparse.Namespace) -> int:
+    """Execute the CLI using parsed arguments."""
+
+    positional_artifact = getattr(
+        args,
+        "authorization_artifact_positional",
+        None,
+    )
+
+    flagged_artifact = getattr(
+        args,
+        "authorization_artifact",
+        None,
+    )
+
+    if (
+        positional_artifact is not None
+        and flagged_artifact is not None
+    ):
         print(
-            "Authorization blocked: "
-            f"{authorization.decision.value}"
+            "Configuration error: authorization artifact was supplied "
+            "both positionally and with --authorization-artifact."
         )
-        return 3
+        return 2
 
-    output_directory: str | Path | None = args.output
+    authorization_artifact = (
+        positional_artifact
+        if positional_artifact is not None
+        else flagged_artifact
+    )
 
-    if output_directory is None:
-        output_directory = config.output.directory
+    config_path = (
+        Path(args.config)
+        if args.config
+        else DEFAULT_CONFIG_PATH
+    )
+
+    explicit_config = args.config is not None
 
     try:
-        result = ApplicationRunner().run(
+        config = load_config(config_path)
+
+        if authorization_artifact is not None:
+            artifact_path = Path(authorization_artifact)
+
+            authorization = ScopeGuardArtifactLoader().load(
+                artifact_path
+            )
+
+            config = _apply_artifact_context(
+                config,
+                authorization,
+                explicit_config=explicit_config,
+            )
+
+        else:
+            if not explicit_config:
+                print(
+                    "Configuration error: no authorization artifact was "
+                    "provided and no explicit --config was supplied."
+                )
+                return 2
+
+            authorization = ScopeGuardAdapter().evaluate(
+                config.target.value,
+                config.authorization,
+            )
+
+            if not authorization.is_authorized:
+                print(
+                    "Authorization denied: target is not authorized."
+                )
+                return 3
+
+        output_directory = (
+            str(args.output)
+            if args.output is not None
+            else str(config.output.directory)
+        )
+
+        runner = ApplicationRunner()
+
+        result = runner.run(
             config,
             authorization,
             output_directory=output_directory,
             json_enabled=not args.no_json,
             report_enabled=not args.no_report,
         )
+
+        if result.pipeline_blocked:
+            print(
+                "Pipeline blocked by execution policy."
+            )
+            return 3
+
+        if not result.pipeline_completed:
+            print(
+                "Project 2 pipeline did not complete."
+            )
+            return 4
+
+        if result.output is not None:
+            print("Reconnaissance completed successfully.")
+            print(
+                f"JSON output: {result.output.json_path}"
+                if result.output.json_path is not None
+                else "JSON output: disabled"
+            )
+            print(
+                f"Report output: {result.output.report_path}"
+                if result.output.report_path is not None
+                else "Report output: disabled"
+            )
+        else:
+            print("Reconnaissance completed successfully.")
+
+        return 0
+
+    except ConfigurationError as exc:
+        print(f"Configuration error: {exc}")
+        return 2
+
+    except AuthorizationError as exc:
+        print(f"Authorization error: {exc}")
+        return 3
+
+    except AuthorizationArtifactError as exc:
+        print(f"Authorization artifact error: {exc}")
+        return 2
+
     except ApplicationRunnerError as exc:
         print(f"Application error: {exc}")
         return 4
-
-    if result.pipeline_blocked:
-        print("Reconnaissance blocked by execution policy.")
-        return 3
-
-    if not result.pipeline_completed:
-        print("Reconnaissance did not complete.")
-        return 4
-
-    print("Reconnaissance completed successfully.")
-
-    if result.output is not None:
-        if result.output.json_path is not None:
-            print(f"JSON output: {result.output.json_path}")
-
-        if result.output.report_path is not None:
-            print(f"Report output: {result.output.report_path}")
-
-    return 0
 
 
 def main() -> None:

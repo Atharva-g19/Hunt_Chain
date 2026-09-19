@@ -200,7 +200,7 @@ class DNSStage:
                     "Pipeline assets state contains an invalid Asset."
                 )
 
-            if asset.type != "HOSTNAME":
+            if asset.type not in {"DOMAIN", "HOSTNAME"}:
                 continue
 
             hostname = asset.normalized_value.strip().lower()

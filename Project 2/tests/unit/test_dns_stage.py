@@ -185,8 +185,8 @@ def make_context(
     return context
 
 
-def test_dns_stage_collects_only_hostname_assets():
-    """DNS stage must not attempt to resolve domains or IP assets."""
+def test_dns_stage_collects_domain_and_hostname_assets():
+    """DNS stage resolves domain/hostname assets but never IP assets."""
     provider = FakeDNSProvider(
         [
             DNSObservation(
@@ -218,9 +218,10 @@ def test_dns_stage_collects_only_hostname_assets():
         provider=provider
     ).execute(context)
 
-    assert result.hostnames_processed == 2
+    assert result.hostnames_processed == 3
     assert provider.calls == [
         [
+            "example.com",
             "www.example.com",
             "api.example.com",
         ]
@@ -556,19 +557,13 @@ def test_dns_stage_reports_number_of_processed_hostnames():
     ]
 
 
-def test_dns_stage_handles_no_hostname_assets():
-    """No hostname assets produce an empty DNS request."""
+def test_dns_stage_handles_no_domain_or_hostname_assets():
+    """IP-only assets produce an empty DNS request."""
     provider = FakeDNSProvider()
 
     context = make_context(
         assets=[
-            Asset(
-                value="example.com",
-                type="DOMAIN",
-                normalized_value="example.com",
-                sources=["fixture"],
-            ),
-            Asset(
+                Asset(
                 value="192.168.1.10",
                 type="IP_ADDRESS",
                 normalized_value="192.168.1.10",

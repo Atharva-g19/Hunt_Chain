@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from typing import Any
+from urllib.parse import urlparse
 
 from hunt_chain_recon.models.assets import Asset
 from hunt_chain_recon.pipeline.context import PipelineContext
@@ -56,12 +57,31 @@ class TargetStage:
         )
 
         target = context.config.target
+        asset_value = target.value
+        asset_type = target.type
+
+        # ScopeGuard can authorize a URL while Project 2 performs DNS and
+        # HTTP reconnaissance against its host.  Preserve the authorized URL
+        # in configuration/output, but construct the canonical recon asset
+        # from its host using the existing DOMAIN processing path.
+        if target.type == "URL":
+            parsed = urlparse(target.value)
+            if (
+                parsed.scheme not in {"http", "https"}
+                or not parsed.hostname
+            ):
+                raise TargetStageError(
+                    "URL targets must include an http or https hostname."
+                )
+
+            asset_value = parsed.hostname
+            asset_type = "DOMAIN"
 
         try:
             asset = self._normalizer.normalize(
                 {
-                    "value": target.value,
-                    "type": target.type,
+                    "value": asset_value,
+                    "type": asset_type,
                     "source": "configured_target",
                 }
             )
@@ -76,6 +96,7 @@ class TargetStage:
                 "source": "configured_target",
                 "network_activity": False,
                 "target_type": target.type,
+                "recon_asset_type": asset_type,
             },
         )
 

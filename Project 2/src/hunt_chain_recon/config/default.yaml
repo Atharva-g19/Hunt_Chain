@@ -22,6 +22,14 @@ discovery:
     certificate_transparency:
       enabled: true
 
+    subfinder:
+      enabled: true
+
+    amass:
+      enabled: true
+
+    
+
 dns:
   enabled: true
   record_types:

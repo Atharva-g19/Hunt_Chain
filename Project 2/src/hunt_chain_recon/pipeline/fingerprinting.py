@@ -24,7 +24,10 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from hunt_chain_recon.models.endpoints import Endpoint
-from hunt_chain_recon.models.http import HTTPObservation
+from hunt_chain_recon.models.http import (
+    HTTPObservation,
+    HTTPObservationState,
+)
 from hunt_chain_recon.models.technology import (
     Technology,
     TechnologyEvidence,
@@ -158,7 +161,13 @@ class FingerprintingStage:
                     "HTTP results contain an invalid observation."
                 )
 
-            if observation.state.value != "SUCCESS":
+            # A redirect can include the final response's headers/body.  It
+            # remains redirect evidence in the HTTP model, but it is still
+            # valid input for non-invasive technology fingerprinting.
+            if observation.state not in {
+                HTTPObservationState.SUCCESS,
+                HTTPObservationState.REDIRECT,
+            }:
                 continue
 
             endpoint = endpoint_by_id.get(
@@ -168,12 +177,10 @@ class FingerprintingStage:
             if endpoint is None:
                 continue
 
-            body = raw_bodies.get(
-                observation.id
-            )
-
-            if body is None:
-                continue
+            # Headers are independently useful fingerprint evidence.  A
+            # response body is optional runtime enrichment, so its absence
+            # must not suppress header-based technology observations.
+            body = raw_bodies.get(observation.id, b"")
 
             try:
                 result = self.fingerprinter.fingerprint(

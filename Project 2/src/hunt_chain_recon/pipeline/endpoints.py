@@ -190,44 +190,55 @@ class EndpointStage:
                     scheme
                 )
 
-                for port in ports:
-                    normalized_port = cls._normalize_port(
-                        port
-                    )
+                # Default web probing is intentionally not a scheme × port
+                # product.  It must not infer HTTP on 443 or HTTPS on 80
+                # without service evidence.  Non-default ports belong to a
+                # future service-discovery result, not target configuration.
+                default_port = cls._default_port(normalized_scheme)
 
-                    url = cls._build_url(
+                if default_port not in ports:
+                    continue
+
+                url = cls._build_url(
+                    scheme=normalized_scheme,
+                    hostname=hostname,
+                    port=default_port,
+                )
+
+                key = (
+                    normalized_scheme.value,
+                    url,
+                )
+
+                if key in seen:
+                    continue
+
+                seen.add(
+                    key
+                )
+
+                endpoints.append(
+                    Endpoint(
+                        asset_id=asset.id,
                         scheme=normalized_scheme,
                         hostname=hostname,
-                        port=normalized_port,
+                        port=default_port,
+                        url=url,
+                        metadata={
+                            "source": "configured_http_endpoint",
+                            "asset_type": asset.type,
+                        },
                     )
-
-                    key = (
-                        normalized_scheme.value,
-                        url,
-                    )
-
-                    if key in seen:
-                        continue
-
-                    seen.add(
-                        key
-                    )
-
-                    endpoints.append(
-                        Endpoint(
-                            asset_id=asset.id,
-                            scheme=normalized_scheme,
-                            hostname=hostname,
-                            port=normalized_port,
-                            url=url,
-                            metadata={
-                                "source": "configured_http_endpoint",
-                                "asset_type": asset.type,
-                            },
-                        )
-                    )
+                )
 
         return endpoints
+
+    @staticmethod
+    def _default_port(
+        scheme: EndpointScheme,
+    ) -> int:
+        """Return the only default port valid without service evidence."""
+        return 80 if scheme is EndpointScheme.HTTP else 443
 
     @staticmethod
     def _asset_host(
