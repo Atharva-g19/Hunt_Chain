@@ -267,7 +267,7 @@ def test_missing_schema_raises_output_error(
     missing_schema = (
         tmp_path
         / "missing"
-        / "attack_surface_v1.json"
+        / "attack_surface.json"
     )
 
     writer = JSONOutputWriter(

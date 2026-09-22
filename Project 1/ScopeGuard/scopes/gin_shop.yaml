@@ -1,0 +1,14 @@
+version: "v1"
+
+program:
+  name: "PortSwigger Gin and Juice Shop"
+
+scope:
+  rules:
+    - id: "GIN-JUICE-SHOP-WEB-001"
+      effect: "include"
+      asset:
+        type: "url"
+        value: "https://ginandjuice.shop/"
+      category: "web"
+      description: "Authorized OWASP Juice Shop training target for non-destructive security testing."

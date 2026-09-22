@@ -3,7 +3,7 @@
 These models represent HTTP/HTTPS application endpoints without performing
 network requests or making assumptions about endpoint availability.
 
-They are intentionally limited to the V1 endpoint representation layer.
+They provide the normalized endpoint representation consumed by downstream security testing.
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class EndpointScheme(str, Enum):
-    """Supported endpoint schemes for V1."""
+    """Supported endpoint communication schemes."""
 
     HTTP = "http"
     HTTPS = "https"
@@ -74,6 +74,54 @@ class Endpoint(BaseModel):
         description="Endpoint URL or canonical application location.",
     )
 
+    method: str = Field(
+        default="GET",
+        min_length=1,
+        description="Observed or discovered HTTP method.",
+    )
+
+    path: str = Field(
+        default="/",
+        min_length=1,
+        description="Normalized URL path.",
+    )
+
+    query_parameters: dict[str, str | None] = Field(
+        default_factory=dict,
+        description="Query parameters discovered on the endpoint.",
+    )
+
+    query_parameter_values: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Observed values for discovered query parameters.",
+    )
+
+    body_parameters: dict[str, str | None] = Field(
+        default_factory=dict,
+        description="Form or structured-body parameters discovered on the endpoint.",
+    )
+
+    content_type: str | None = Field(
+        default=None,
+        description="Observed or discovered request content type.",
+    )
+
+    source: str = Field(
+        default="configured",
+        min_length=1,
+        description="Discovery provenance for the endpoint.",
+    )
+
+    parent_endpoint: UUID | None = Field(
+        default=None,
+        description="Endpoint from which this endpoint was discovered.",
+    )
+
+    discovered_from: str | None = Field(
+        default=None,
+        description="Source URL or artifact that yielded this endpoint.",
+    )
+
     metadata: dict[str, Any] = Field(
         default_factory=dict,
         description=(
@@ -81,6 +129,32 @@ class Endpoint(BaseModel):
             "Must not contain vulnerability conclusions."
         ),
     )
+
+    @field_validator("method")
+    @classmethod
+    def normalize_method(cls, value: str) -> str:
+        normalized = value.strip().upper()
+        if not normalized:
+            raise ValueError("Method must not be empty.")
+        return normalized
+
+    @field_validator("path")
+    @classmethod
+    def normalize_path(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("Path must not be empty.")
+        if not normalized.startswith("/"):
+            normalized = "/" + normalized
+        return normalized
+
+    @field_validator("source")
+    @classmethod
+    def normalize_source(cls, value: str) -> str:
+        normalized = value.strip().lower()
+        if not normalized:
+            raise ValueError("Source must not be empty.")
+        return normalized
 
     @field_validator("scheme", mode="before")
     @classmethod

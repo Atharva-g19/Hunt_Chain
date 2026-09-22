@@ -25,7 +25,7 @@ class JSONOutputWriter:
     DEFAULT_SCHEMA_PATH = (
         Path(__file__).resolve().parents[3]
         / "schemas"
-        / "attack_surface_v1.json"
+        / "attack_surface.json"
     )
 
     def __init__(
@@ -282,4 +282,3 @@ class JSONOutputWriter:
             ) from exc
 
         return output_path
-

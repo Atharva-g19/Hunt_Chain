@@ -1,0 +1,70 @@
+target:
+  value: https://ginandjuice.shop/blog
+  type: URL
+authorization:
+  provider: scopeguard
+  reference: GIN-JUICE-SHOP-WEB-001
+  scope_file: D:/Coding/z-Project/Hunt_Chain/Project 1/ScopeGuard/scopes/gin_shop.yaml
+execution:
+  mode: active
+discovery:
+  enabled: true
+  providers:
+    certificate_transparency:
+      enabled: true
+    subfinder:
+      enabled: true
+    amass:
+      enabled: true
+    web:
+      enabled: true
+dns:
+  enabled: true
+  record_types:
+  - A
+  - AAAA
+
+  - CNAME
+  timeout_seconds: 5
+  wildcard_detection:
+    enabled: true
+  dangling_cname_detection:
+    enabled: true
+politeness:
+  concurrency: 5
+  requests_per_second: 2
+  timeout_seconds: 10
+http:
+  enabled: true
+  schemes:
+  - http
+  - https
+  timeout_seconds: 10
+  follow_redirects: true
+  max_redirects: 5
+  verify_tls: true
+  response:
+    collect_headers: true
+    collect_body_hash: true
+fingerprinting:
+  enabled: true
+  response_hash:
+    enabled: true
+    algorithm: sha256
+technology:
+  enabled: true
+infrastructure:
+  enabled: true
+  shared_ip_detection: true
+  provider_identification:
+    enabled: true
+output:
+  directory: ./output
+  formats:
+    json: true
+    report: true
+  json:
+    schema_version: v1
+logging:
+  level: INFO
+  file: ./logs/recon.log

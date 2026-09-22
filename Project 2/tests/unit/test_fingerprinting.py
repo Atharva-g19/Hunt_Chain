@@ -32,6 +32,7 @@ def test_server_header_detects_nginx() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"Server": "nginx/1.24.0"},
         body=b"",
     )
@@ -51,6 +52,7 @@ def test_server_header_detection_is_case_insensitive() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"server": "NGINX/1.24.0"},
         body=b"",
     )
@@ -65,6 +67,7 @@ def test_cloudflare_and_nextjs_headers_produce_evidence() -> None:
     """Generic CDN/framework headers are retained as technology evidence."""
     result = TechnologyFingerprinter().fingerprint(
         endpoint=make_endpoint(),
+        observation_id=uuid4(),
         headers={
             "Server": "cloudflare",
             "X-Nextjs-Cache": "HIT",
@@ -84,6 +87,7 @@ def test_server_header_detects_python_simplehttp() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={
             "Server": "SimpleHTTP/0.6 Python/3.13.2"
         },
@@ -110,6 +114,7 @@ def test_python_simplehttp_detection_is_case_insensitive() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={
             "server": "simplehttp/0.6 python/3.13.2"
         },
@@ -128,6 +133,7 @@ def test_x_powered_by_detects_php() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"X-Powered-By": "PHP/8.3.2"},
         body=b"",
     )
@@ -149,6 +155,7 @@ def test_powered_by_detects_asp_net() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"X-Powered-By": "ASP.NET"},
         body=b"",
     )
@@ -175,6 +182,7 @@ def test_wordpress_body_marker_detects_cms() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"Content-Type": "text/html"},
         body=body,
     )
@@ -205,6 +213,7 @@ def test_react_marker_detects_javascript_framework() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={},
         body=body,
     )
@@ -223,6 +232,7 @@ def test_multiple_independent_fingerprints_are_preserved() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={
             "Server": "nginx/1.24.0",
             "X-Powered-By": "PHP/8.3.2",
@@ -245,6 +255,7 @@ def test_duplicate_evidence_does_not_duplicate_technology() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={
             "Server": "nginx/1.24.0",
             "X-Server": "nginx/1.24.0",
@@ -267,6 +278,7 @@ def test_header_evidence_is_explainable() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"Server": "nginx/1.24.0"},
         body=b"",
     )
@@ -300,6 +312,7 @@ def test_body_evidence_is_explainable() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={},
         body=b'<meta name="generator" content="WordPress 6.5.3">',
     )
@@ -323,6 +336,7 @@ def test_technology_evidence_references_existing_technology() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"Server": "nginx/1.24.0"},
         body=b"",
     )
@@ -344,6 +358,7 @@ def test_unknown_response_produces_no_false_technology() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={
             "Content-Type": "application/octet-stream",
         },
@@ -360,6 +375,7 @@ def test_fingerprinting_does_not_perform_network_activity() -> None:
 
     result = TechnologyFingerprinter().fingerprint(
         endpoint=endpoint,
+        observation_id=uuid4(),
         headers={"Server": "nginx/1.24.0"},
         body=b"",
     )

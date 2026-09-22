@@ -65,23 +65,23 @@ def test_default_pipeline_contains_dns_analysis_after_dns() -> None:
         include_default_stages=True,
     )
 
-    assert [stage.name for stage in engine.stages] == [
-    "target",
-    "discovery",
-    "asset_processing",
-    "asset_merge",
-    "dns",
-    "dns_analysis",
-    "endpoints",
-    "http",
-    "fingerprinting",
-    "infrastructure",
-    "attack_surface",
-	]
+    names = [stage.name for stage in engine.stages]
 
-    names = [
-        stage.name
-        for stage in engine.stages
+    assert names == [
+        "target",
+        "discovery",
+        "asset_processing",
+        "asset_merge",
+        "dns",
+        "dns_analysis",
+        "endpoints",
+        "http",
+        "http_response_discovery",
+        "http_endpoint_merge",
+        "http_reprobe",
+        "fingerprinting",
+        "infrastructure",
+        "attack_surface",
     ]
 
     assert names.index("dns_analysis") > names.index("dns")
@@ -102,39 +102,28 @@ def test_default_pipeline_preserves_stage_activities() -> None:
         include_default_stages=True,
     )
 
+    names = [stage.name for stage in engine.stages]
+
     activities = [
         stage.activity.value
         for stage in engine.stages
     ]
 
     assert activities == [
-    "PASSIVE_DISCOVERY",
-    "PASSIVE_DISCOVERY",
-    "PASSIVE_DISCOVERY",
-    "PASSIVE_DISCOVERY",
-    "DNS_RESOLUTION",
-    "DNS_RESOLUTION",
-    "PASSIVE_DISCOVERY",
-    "HTTP_PROBING",
-    "PASSIVE_DISCOVERY",
-    "INFRASTRUCTURE_LOOKUP",
-    "PASSIVE_DISCOVERY",
-]
-
-
-def test_default_pipeline_stage_names_are_unique() -> None:
-    """Every built-in stage has a unique registered name."""
-
-    context = make_context()
-
-    engine = PipelineEngine(
-        context,
-        include_default_stages=True,
-    )
-
-    names = [
-        stage.name
-        for stage in engine.stages
+        "PASSIVE_DISCOVERY",
+        "PASSIVE_DISCOVERY",
+        "PASSIVE_DISCOVERY",
+        "PASSIVE_DISCOVERY",
+        "DNS_RESOLUTION",
+        "DNS_RESOLUTION",
+        "PASSIVE_DISCOVERY",
+        "HTTP_PROBING",
+        "PASSIVE_DISCOVERY",
+        "PASSIVE_DISCOVERY",
+        "HTTP_PROBING",
+        "PASSIVE_DISCOVERY",
+        "INFRASTRUCTURE_LOOKUP",
+        "PASSIVE_DISCOVERY",
     ]
 
     assert len(names) == len(set(names))

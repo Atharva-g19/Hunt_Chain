@@ -15,7 +15,7 @@ from hunt_chain_recon.models.run import ReconRun
 SCHEMA_PATH = (
     Path(__file__).resolve().parents[2]
     / "schemas"
-    / "attack_surface_v1.json"
+    / "attack_surface.json"
 )
 
 

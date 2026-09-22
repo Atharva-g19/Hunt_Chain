@@ -60,12 +60,13 @@ class TargetStage:
         asset_value = target.value
         asset_type = target.type
 
-        # ScopeGuard can authorize a URL while Project 2 performs DNS and
-        # HTTP reconnaissance against its host.  Preserve the authorized URL
-        # in configuration/output, but construct the canonical recon asset
-        # from its host using the existing DOMAIN processing path.
+        # Preserve an explicitly authorized URL as the HTTP discovery seed,
+        # while representing the canonical asset using the supported hostname
+        # asset type. The original URL remains available through config.target
+        # for endpoint generation and web discovery.
         if target.type == "URL":
             parsed = urlparse(target.value)
+
             if (
                 parsed.scheme not in {"http", "https"}
                 or not parsed.hostname
@@ -75,7 +76,7 @@ class TargetStage:
                 )
 
             asset_value = parsed.hostname
-            asset_type = "DOMAIN"
+            asset_type = "HOSTNAME"
 
         try:
             asset = self._normalizer.normalize(

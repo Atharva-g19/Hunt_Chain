@@ -40,13 +40,49 @@ class CertificateTransparencyConfig(BaseModel):
     enabled: bool = True
 
 
+class SubfinderConfig(BaseModel):
+    """Configuration for optional Subfinder passive discovery."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = False
+
+
+class AmassConfig(BaseModel):
+    """Configuration for optional Amass passive discovery."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = False
+
+
+class WebDiscoveryConfig(BaseModel):
+    """Configuration for web application discovery."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = True
+
+
 class DiscoveryProvidersConfig(BaseModel):
-    """Configuration for individual discovery providers."""
+    """Configuration for Project 2 discovery providers."""
 
     model_config = ConfigDict(extra="allow")
 
     certificate_transparency: CertificateTransparencyConfig = Field(
         default_factory=CertificateTransparencyConfig
+    )
+
+    subfinder: SubfinderConfig = Field(
+        default_factory=SubfinderConfig
+    )
+
+    amass: AmassConfig = Field(
+        default_factory=AmassConfig
+    )
+
+    web: WebDiscoveryConfig = Field(
+        default_factory=WebDiscoveryConfig
     )
 
 

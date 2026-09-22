@@ -1,0 +1,911 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hunt-chain.local/schemas/attack_surface.json",
+  "title": "Hunt_Chain Project 2 Attack Surface Model",
+  "description": "Version 1 machine-readable contract for authorized reconnaissance and attack surface intelligence.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "run",
+    "target",
+    "authorization",
+    "execution",
+    "assets",
+    "dns_observations",
+    "services",
+    "endpoints",
+    "http_observations",
+    "technologies",
+    "technology_evidence",
+    "indicators",
+    "relationships",
+    "metadata"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "v1"
+    },
+    "run": {
+      "$ref": "#/$defs/recon_run"
+    },
+    "target": {
+      "$ref": "#/$defs/target_config"
+    },
+    "authorization": {
+      "$ref": "#/$defs/authorization_config"
+    },
+    "execution": {
+      "$ref": "#/$defs/execution_config"
+    },
+    "assets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/asset"
+      }
+    },
+    "dns_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/dns_observation"
+      }
+    },
+    "services": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/service"
+      }
+    },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/endpoint"
+      }
+    },
+    "http_observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/http_observation"
+      }
+    },
+    "technologies": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/technology"
+      }
+    },
+    "technology_evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/technology_evidence"
+      }
+    },
+    "indicators": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/indicator"
+      }
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      }
+    },
+    "metadata": {
+      "type": "object"
+    }
+  },
+  "$defs": {
+    "uuid": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "metadata": {
+      "type": "object"
+    },
+    "target_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "value",
+        "type"
+      ],
+      "properties": {
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DOMAIN",
+            "HOSTNAME",
+            "IP_ADDRESS",
+            "URL"
+          ]
+        }
+      }
+    },
+    "authorization_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider",
+        "reference"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "execution_config": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "active",
+            "passive_only"
+          ]
+        }
+      }
+    },
+    "recon_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "target",
+        "execution_mode",
+        "status",
+        "started_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution_mode": {
+          "type": "string",
+          "enum": [
+            "active",
+            "passive_only"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "INITIALIZED",
+            "RUNNING",
+            "COMPLETED",
+            "PARTIAL",
+            "FAILED",
+            "BLOCKED"
+          ]
+        },
+        "started_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "value",
+        "normalized_value",
+        "sources"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DOMAIN",
+            "HOSTNAME",
+            "IP_ADDRESS"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalized_value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/discovery_source"
+          }
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "discovery_source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "provider"
+      ],
+      "properties": {
+        "provider": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "dns_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "hostname",
+        "state",
+        "records",
+        "observed_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "asset_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "hostname": {
+          "type": "string",
+          "minLength": 1
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "RESOLVED",
+            "UNRESOLVED",
+            "TIMEOUT",
+            "ERROR"
+          ]
+        },
+        "records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/dns_record"
+          }
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "error_message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "dns_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "value"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": [
+            "A",
+            "AAAA",
+            "CNAME"
+          ]
+        },
+        "value": {
+          "type": "string",
+          "minLength": 1
+        },
+        "ttl": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "asset_id",
+        "state",
+        "observed_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "OBSERVED",
+            "UNKNOWN"
+          ]
+        },
+        "port": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "transport": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "TCP",
+            "UDP",
+            null
+          ]
+        },
+        "source_reference": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "asset_id",
+        "scheme",
+        "hostname",
+        "url"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "service_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scheme": {
+          "type": "string",
+          "enum": [
+            "http",
+            "https"
+          ]
+        },
+        "hostname": {
+          "type": "string",
+          "minLength": 1
+        },
+        "port": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 65535
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Observed or discovered HTTP method."
+        },
+        "path": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Normalized URL path."
+        },
+        "query_parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": "Query parameters discovered on the endpoint."
+        },
+        "body_parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "description": "Form or structured-body parameters discovered on the endpoint."
+        },
+        "content_type": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Observed or discovered request content type."
+        },
+        "source": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Discovery provenance for the endpoint."
+        },
+        "parent_endpoint": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "uuid",
+          "description": "Endpoint from which this endpoint was discovered."
+        },
+        "discovered_from": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Source URL or artifact that yielded this endpoint."
+        },
+        "query_parameter_values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "http_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "endpoint_id",
+        "state",
+        "observed_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "endpoint_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "state": {
+          "type": "string",
+          "enum": [
+            "SUCCESS",
+            "CONNECTION_ERROR",
+            "TIMEOUT",
+            "TLS_ERROR",
+            "REDIRECT",
+            "ERROR"
+          ]
+        },
+        "status_code": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 100,
+          "maximum": 599
+        },
+        "headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "content_type": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "body_length": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "body_hash": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "redirect_chain": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uri"
+          }
+        },
+        "tls": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/tls_observation"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "error_message": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "tls_observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "cipher": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "certificate_subject": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "certificate_issuer": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "certificate_not_before": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "certificate_not_after": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "technology": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "category"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "WEB_SERVER",
+            "WEB_FRAMEWORK",
+            "JAVASCRIPT_FRAMEWORK",
+            "CMS",
+            "PROGRAMMING_LANGUAGE",
+            "DATABASE",
+            "CDN",
+            "CLOUD_PLATFORM",
+            "OTHER"
+          ]
+        },
+        "version": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "technology_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "technology_id",
+        "evidence_type",
+        "observation",
+        "rule",
+        "confidence"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "technology_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "evidence_type": {
+          "type": "string",
+          "enum": [
+            "HTTP_HEADER",
+            "HTTP_BODY",
+            "HTML",
+            "COOKIE",
+            "TLS",
+            "DNS",
+            "RESPONSE_HASH",
+            "PROVIDER_METADATA",
+            "OTHER"
+          ]
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "observation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "rule": {
+          "type": "string",
+          "minLength": 1
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        }
+      }
+    },
+    "indicator": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "asset_id",
+        "type",
+        "status",
+        "confidence",
+        "title",
+        "description",
+        "evidence",
+        "source_ids",
+        "observed_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "asset_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "POTENTIAL_DANGLING_CNAME"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "OBSERVED",
+            "NEEDS_REVIEW"
+          ]
+        },
+        "confidence": {
+          "type": "string",
+          "enum": [
+            "LOW",
+            "MEDIUM",
+            "HIGH"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/uuid"
+          }
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    },
+    "relationship": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "source_id",
+        "target_id",
+        "evidence_ids",
+        "metadata"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "HOSTNAME_RESOLVES_TO_IP",
+            "HOSTNAME_USES_CNAME",
+            "HOSTNAME_EXPOSES_SERVICE",
+            "SERVICE_SERVES_ENDPOINT",
+            "ENDPOINT_INDICATES_TECHNOLOGY",
+            "ASSET_HAS_INDICATOR",
+            "IP_SHARED_BY_HOSTNAMES"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "target_id": {
+          "$ref": "#/$defs/uuid"
+        },
+        "evidence_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/uuid"
+          },
+          "uniqueItems": true
+        },
+        "metadata": {
+          "$ref": "#/$defs/metadata"
+        }
+      }
+    }
+  }
+}

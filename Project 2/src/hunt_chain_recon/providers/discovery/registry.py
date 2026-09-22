@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from hunt_chain_recon.providers.discovery.base import DiscoveryProvider
+from hunt_chain_recon.providers.discovery.web import WebDiscoveryProvider
 from hunt_chain_recon.providers.discovery.certificate_transparency import (
     CertificateTransparencyProvider,
 )
@@ -40,7 +41,8 @@ class DiscoveryProviderRegistry:
     def __init__(self) -> None:
         """Initialize the registry with built-in V1 providers."""
         self._factories: dict[str, DiscoveryProviderFactory] = {
-            "certificate_transparency": CertificateTransparencyProvider,
+            "web": WebDiscoveryProvider,
+        "certificate_transparency": CertificateTransparencyProvider,
             "subfinder": SubfinderProvider,
             "amass": AmassProvider,
         }

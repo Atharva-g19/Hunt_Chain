@@ -138,7 +138,7 @@ class PipelineEngine:
         self._stages.clear()
 
     def register_default_stages(self) -> None:
-        """Register the built-in Project 2 V1 pipeline stages.
+        """Register the built-in Project 2 pipeline stages.
 
         Current default flow:
 
@@ -157,6 +157,12 @@ class PipelineEngine:
             EndpointStage
                 ->
             HTTPStage
+                ->
+            HTTPResponseDiscoveryStage
+                ->
+            HTTPEndpointMergeStage
+                ->
+            HTTPReprobeStage
                 ->
             FingerprintingStage
                 ->
@@ -195,6 +201,15 @@ class PipelineEngine:
         from hunt_chain_recon.pipeline.http import (
             HTTPStage,
         )
+        from hunt_chain_recon.pipeline.http_response_discovery import (
+            HTTPResponseDiscoveryStage,
+        )
+        from hunt_chain_recon.pipeline.http_endpoint_merge import (
+            HTTPEndpointMergeStage,
+        )
+        from hunt_chain_recon.pipeline.http_reprobe import (
+            HTTPReprobeStage,
+        )
         from hunt_chain_recon.pipeline.infrastructure import (
             InfrastructureStage,
         )
@@ -211,6 +226,9 @@ class PipelineEngine:
             DNSAnalysisStage(),
             EndpointStage(),
             HTTPStage(),
+            HTTPResponseDiscoveryStage(),
+            HTTPEndpointMergeStage(),
+            HTTPReprobeStage(),
             FingerprintingStage(),
             InfrastructureStage(),
             AttackSurfaceStage(),

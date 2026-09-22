@@ -38,6 +38,7 @@ def test_registry_contains_builtin_certificate_transparency_provider():
         "amass",
         "certificate_transparency",
         "subfinder",
+        "web",
     )
 
 
@@ -172,6 +173,7 @@ def test_registry_available_is_deterministically_sorted():
         "amass",
         "certificate_transparency",
         "subfinder",
+        "web",
         "zeta",
     )
 

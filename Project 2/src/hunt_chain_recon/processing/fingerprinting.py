@@ -220,12 +220,12 @@ class TechnologyFingerprinter:
         ),
         (
             re.compile(
-                r"\bangular(?:\.min)?\.js\b",
+                r"(?:\bangular(?:\.min)?\.js\b|\bng-app\b|\bng-controller\b|\bng-model\b|\bng-repeat\b|angular\.module\s*\()",
                 re.IGNORECASE,
             ),
             "AngularJS",
             TechnologyCategory.JAVASCRIPT_FRAMEWORK,
-            "html_angular_script",
+            "html_angular_marker",
             TechnologyConfidence.MEDIUM,
         ),
     )
@@ -234,6 +234,7 @@ class TechnologyFingerprinter:
         self,
         *,
         endpoint: Endpoint,
+        observation_id: UUID,
         headers: Mapping[str, str],
         body: bytes,
         response_hash: str | None = None,
@@ -242,9 +243,18 @@ class TechnologyFingerprinter:
 
         No network activity is performed.
         """
+        if not isinstance(observation_id, UUID):
+            raise FingerprintingError(
+                "observation_id must be a UUID."
+        )
         if not isinstance(endpoint, Endpoint):
             raise FingerprintingError(
                 "endpoint must be an Endpoint."
+            )
+
+        if not isinstance(observation_id, UUID):
+            raise FingerprintingError(
+                "observation_id must be a UUID."
             )
 
         if not isinstance(headers, Mapping):
@@ -340,7 +350,7 @@ class TechnologyFingerprinter:
                 TechnologyEvidence(
                     technology_id=technology.id,
                     evidence_type=match.evidence_type,
-                    source_id=endpoint.id,
+                    source_id=observation_id,
                     observation=match.observation,
                     rule=match.rule,
                     confidence=match.confidence,
@@ -349,7 +359,7 @@ class TechnologyFingerprinter:
 
         if response_hash is not None:
             self._add_response_hash_evidence(
-                endpoint=endpoint,
+                observation_id=observation_id,
                 response_hash=response_hash,
                 technologies=technologies,
                 evidence=evidence,
@@ -567,7 +577,7 @@ class TechnologyFingerprinter:
     @staticmethod
     def _add_response_hash_evidence(
         *,
-        endpoint: Endpoint,
+        observation_id: UUID,
         response_hash: str,
         technologies: list[Technology],
         evidence: list[TechnologyEvidence],
@@ -600,7 +610,7 @@ class TechnologyFingerprinter:
                     evidence_type=(
                         TechnologyEvidenceType.RESPONSE_HASH
                     ),
-                    source_id=endpoint.id,
+                    source_id=observation_id,
                     observation=(
                         "Observed response SHA-256: "
                         f"{normalized_hash}"

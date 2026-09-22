@@ -185,6 +185,7 @@ class FingerprintingStage:
             try:
                 result = self.fingerprinter.fingerprint(
                     endpoint=endpoint,
+                    observation_id=observation.id,
                     headers=observation.headers,
                     body=body,
                     response_hash=observation.body_hash,
