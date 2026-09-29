@@ -1,0 +1,13 @@
+{
+  "state": "IN_SCOPE",
+  "target": {
+    "raw_value": "https://ginandjuice.shop/",
+    "normalized_value": "https://ginandjuice.shop/",
+    "type": "url"
+  },
+  "matched_rules": [
+    "GIN-JUICE-SHOP-WEB-001"
+  ],
+  "winning_rule": "GIN-JUICE-SHOP-WEB-001",
+  "reason": "Rule GIN-JUICE-SHOP-WEB-001 matched with specificity 100"
+}

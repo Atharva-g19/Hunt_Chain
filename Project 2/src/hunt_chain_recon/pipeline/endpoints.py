@@ -278,6 +278,10 @@ class EndpointStage:
                         "query_parameters",
                         [],
                     ),
+                    body_parameters=observation.get(
+                        "body_parameters",
+                        {},
+                    ),
                     metadata={
                         "source": observation.get(
                             "source",
@@ -302,6 +306,7 @@ class EndpointStage:
         parent_url: str | None,
         method: str,
         query_parameters: list[str] | dict[str, Any] | None,
+        body_parameters: dict[str, str | None] | None = None,
         metadata: dict[str, Any],
     ) -> None:
         """Convert a discovered URL into a canonical Endpoint."""
@@ -394,6 +399,10 @@ class EndpointStage:
             existing.query_parameters = merged_parameters
             existing.query_parameter_values = merged_values
 
+            merged_body_parameters = dict(existing.body_parameters)
+            merged_body_parameters.update(body_parameters or {})
+            existing.body_parameters = merged_body_parameters
+
             existing_metadata = dict(existing.metadata)
             sources = set(
                 existing_metadata.get("sources", [])
@@ -444,6 +453,7 @@ class EndpointStage:
                 path=path,
                 query_parameters=parameter_names,
                 query_parameter_values=parameter_values,
+                body_parameters=body_parameters or {},
                 source=str(source).strip() or "web_discovery",
                 discovered_from=parent_url,
                 metadata=endpoint_metadata,

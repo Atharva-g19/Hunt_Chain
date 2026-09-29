@@ -1,0 +1,14 @@
+version: "v1"
+
+program:
+  name: "Acn Security Testing"
+
+scope:
+  rules:
+    - id: "Acn-WEB-001"
+      effect: "include"
+      asset:
+        type: "url"
+        value: "http://testasp.vulnweb.com/"
+      category: "web"
+      description: "Authorized Acn training target for non-destructive security testing."

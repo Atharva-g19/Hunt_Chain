@@ -1,0 +1,30 @@
+{
+  "result_id": "result-SQLI-02-target:58a1dd73-44a3-4bf6-a1cb-85ad12847da6-7ebe4369-34c7-4391-98af-efb60646d1e3:validation",
+  "finding_id": "result-SQLI-02-target:58a1dd73-44a3-4bf6-a1cb-85ad12847da6-7ebe4369-34c7-4391-98af-efb60646d1e3",
+  "target_id": "target:58a1dd73-44a3-4bf6-a1cb-85ad12847da6",
+  "endpoint_id": "7ebe4369-34c7-4391-98af-efb60646d1e3",
+  "decision": "NOT_CONFIRMED",
+  "state": "NOT_CONFIRMED",
+  "observation": "Validation requires explicit mutation material, but Project 3 supplied no validation_plan.mutation.",
+  "baseline": null,
+  "validation_observations": [],
+  "comparisons": [],
+  "evidence": [],
+  "errors": [],
+  "requests_used": 0,
+  "metadata": {
+    "test_id": "SQLI-02",
+    "strategy_registered": false,
+    "registry_resolved": true,
+    "family": "sql_injection",
+    "check_name": "Boolean SQL Injection Indicators",
+    "validation_mode": "input_differential",
+    "requires_mutation": true,
+    "requires_control_pair": true,
+    "safe_by_default": true,
+    "family_strategy_registered": true,
+    "family_strategy": "SqlInjectionStrategy",
+    "validation_material_required": true,
+    "validation_material_available": false
+  }
+}

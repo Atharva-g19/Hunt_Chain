@@ -6,6 +6,7 @@ from hunt_chain_core import AssessmentManager
 from hunt_chain_core.project_1_runner import run_project_1
 from hunt_chain_core.project_2_ui import _run_project_2
 from hunt_chain_core.project_3_ui import _run_project_3
+from hunt_chain_core.project_4_ui import _run_project_4
 from hunt_chain_core.scope_manager import ScopeManager
 
 
@@ -101,6 +102,9 @@ def _print_assessment_header(
     )
     print(
         f"  Security Test : {stage_status('project_3')}"
+    )
+    print(
+        f"  Validation    : {stage_status('project_4')}"
     )
 
     print()
@@ -686,10 +690,50 @@ def _open_assessment(
             continue
 
         if choice == "4":
-            print(
-                "\nValidation is not available yet."
-                "\nThe toolkit will not perform a fake execution."
-            )
+            if not _project_available(
+                manager,
+                name,
+                "project_1",
+            ):
+                print(
+                    "\nCannot run Validation."
+                    "\nRun ScopeGuard first."
+                )
+                continue
+
+            if not _authorization_allows_testing(
+                manager,
+                name,
+            ):
+                state = _authorization_state(
+                    manager,
+                    name,
+                )
+
+                print(
+                    "\nCannot run Validation."
+                )
+                print(
+                    "ScopeGuard authorization is not IN_SCOPE."
+                )
+                print(
+                    f"Current authorization state: "
+                    f"{state or 'UNKNOWN'}"
+                )
+                continue
+
+            if not _project_available(
+                manager,
+                name,
+                "project_3",
+            ):
+                print(
+                    "\nCannot run Validation."
+                    "\nRun Vulnerability Testing first."
+                )
+                continue
+
+            _run_project_4(manager, name)
             continue
 
         if choice == "5":

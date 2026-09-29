@@ -1,0 +1,21 @@
+[project]
+name = "hunt-chain-project4"
+version = "0.1.0"
+description = "Hunt_Chain Project 4 - Validation and Controlled Exploitation"
+requires-python = ">=3.13"
+dependencies = []
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+pythonpath = ["src"]
+testpaths = ["tests"]

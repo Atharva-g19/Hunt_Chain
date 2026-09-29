@@ -1,0 +1,1377 @@
+{
+  "authorization": {
+    "metadata": {
+      "matched_rules": [
+        "GIN-JUICE-SHOP-WEB-001"
+      ],
+      "winning_rule": "GIN-JUICE-SHOP-WEB-001"
+    },
+    "reason": "Rule GIN-JUICE-SHOP-WEB-001 matched with specificity 100",
+    "source": "ScopeGuard",
+    "status": "IN_SCOPE",
+    "target": "ginandjuice.shop"
+  },
+  "errors": [],
+  "evidence": [],
+  "metadata": {},
+  "results": [
+    {
+      "confidence": null,
+      "endpoint_id": "e1ef97e7-9c57-4f23-ab93-58f965ab8000",
+      "errors": [
+        "not enough values to unpack (expected 3, got 2)"
+      ],
+      "evidence_ids": [],
+      "manual_validation_required": false,
+      "metadata": {
+        "endpoint": "https://ginandjuice.shop/catalog/subscribe",
+        "execution_mode": "NORMAL"
+      },
+      "observation": "The tester raised an error while processing the endpoint: not enough values to unpack (expected 3, got 2)",
+      "result_id": "result-XSS-01-target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597-e1ef97e7-9c57-4f23-ab93-58f965ab8000",
+      "status": "ERROR",
+      "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+      "test_id": "XSS-01",
+      "title": "XSS-01 execution error"
+    }
+  ],
+  "run": {
+    "execution_mode": "NORMAL",
+    "run_id": "9a62afe2701f4bd6bcd315144902d781",
+    "schema_version": "v1"
+  },
+  "schema_version": "v1",
+  "target": {
+    "asset_id": "f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+    "endpoints": [
+      {
+        "endpoint_id": "4d157a68-62e4-4d33-b84e-193157dafc9a",
+        "metadata": {
+          "authorized_seed": true,
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "source": "configured_target",
+          "sources": [
+            "configured_target",
+            "html:a:href",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/"
+      },
+      {
+        "endpoint_id": "e1ef97e7-9c57-4f23-ab93-58f965ab8000",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:data-action",
+          "sources": [
+            "html:data-action"
+          ]
+        },
+        "method": "POST",
+        "parameters": [
+          "csrf",
+          "email"
+        ],
+        "path": "/catalog/subscribe",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/subscribe"
+      },
+      {
+        "endpoint_id": "7599ac5e-7e4e-4bc7-b985-6ee9ab7ee056",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:link:href",
+          "sources": [
+            "html:link:href"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/labheader/css/scanMeHeader.css",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/labheader/css/scanMeHeader.css"
+      },
+      {
+        "endpoint_id": "8ae01892-701e-4fa6-a4f3-ca1a5801822a",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:link:href",
+          "sources": [
+            "html:link:href"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/css/labsScanme.css",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/css/labsScanme.css"
+      },
+      {
+        "endpoint_id": "e0a8d703-5ad9-4e79-9709-b7e5a0f8e813",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/react.development.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/react.development.js"
+      },
+      {
+        "endpoint_id": "a0480c00-9460-4667-bb76-5a1d706d1be7",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/react-dom.development.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/react-dom.development.js"
+      },
+      {
+        "endpoint_id": "30f414c8-aa86-456a-9a55-0fb7e6b1ebe0",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/angular_1-7-7.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/angular_1-7-7.js"
+      },
+      {
+        "endpoint_id": "daaee120-fe3a-4845-8662-672aae25003e",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/",
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "html:form:action",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [
+          "category",
+          "searchTerm"
+        ],
+        "path": "/catalog",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog"
+      },
+      {
+        "endpoint_id": "ee695155-b716-4024-98b7-6b147ffab822",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/blog",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/blog"
+      },
+      {
+        "endpoint_id": "bfbce06c-a9d5-409c-8a71-88ac2f233545",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/about",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/about"
+      },
+      {
+        "endpoint_id": "4b876117-b00d-4763-b25c-1db8fae362fd",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/my-account",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/my-account"
+      },
+      {
+        "endpoint_id": "6ae6456a-e9cc-4ada-bbde-fa3be2807738",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/catalog/cart",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/cart"
+      },
+      {
+        "endpoint_id": "99348752-92e5-4492-a661-37be00ac7550",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/",
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [
+          "productId"
+        ],
+        "path": "/catalog/product",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/product"
+      },
+      {
+        "endpoint_id": "07af4e41-01de-4bcc-b90d-a6033ecbb756",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/pineapple_edition.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/pineapple_edition.png"
+      },
+      {
+        "endpoint_id": "fe113927-fd4a-466f-9ae7-0092a26d69df",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/rating3.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/rating3.png"
+      },
+      {
+        "endpoint_id": "2bece8f9-fe94-491d-b00f-27d465d43c36",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/11.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/11.png"
+      },
+      {
+        "endpoint_id": "8f82f20e-4309-4630-84de-a0cecf9d65ed",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/rating5.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/rating5.png"
+      },
+      {
+        "endpoint_id": "981737eb-4b41-4e09-ae78-c8c2febdb352",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/10.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/10.png"
+      },
+      {
+        "endpoint_id": "fcf4df52-c7dd-4f5b-add8-898f41339e47",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/",
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:a:href",
+          "sources": [
+            "html:a:href",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [
+          "postId"
+        ],
+        "path": "/blog/post",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/blog/post"
+      },
+      {
+        "endpoint_id": "11e11f55-8cc4-4e77-a16e-e785faea77c1",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/blog/posts/5.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/blog/posts/5.jpg"
+      },
+      {
+        "endpoint_id": "62620b14-2637-4bd5-82b7-545d6679727b",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/blog/posts/3.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/blog/posts/3.jpg"
+      },
+      {
+        "endpoint_id": "01b2589e-dc41-4b96-a9c3-db89fc4820f1",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/subscribeNow.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/subscribeNow.js"
+      },
+      {
+        "endpoint_id": "fee3a7ef-f937-44c5-98ce-7c0a29da650c",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/"
+          ],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/footer/js/scanme.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/footer/js/scanme.js"
+      },
+      {
+        "endpoint_id": "c18800dd-85e1-47a2-9297-afe81c954447",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "javascript:string",
+          "sources": [
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/icon-account.svg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/icon-account.svg"
+      },
+      {
+        "endpoint_id": "0766e62d-4810-4e7a-8357-5994a4cd310d",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "javascript:string",
+          "sources": [
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/icon-cart.svg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/icon-cart.svg"
+      },
+      {
+        "endpoint_id": "8468319b-16ee-4927-86a1-f1e6bc6d14ae",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [],
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "javascript:string",
+          "sources": [
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/catalog/subscribe",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/subscribe"
+      },
+      {
+        "endpoint_id": "a18271a9-ab0a-4d1e-be03-2e97e527774c",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:link:href",
+          "sources": [
+            "html:link:href"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/css/labsEcommerce.css",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/css/labsEcommerce.css"
+      },
+      {
+        "endpoint_id": "07ba7c70-24de-457d-bc5d-1b8cab91638f",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/5.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/5.png"
+      },
+      {
+        "endpoint_id": "a8827cd4-e37f-4226-ba5b-499a9fcd0f91",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/8.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/8.png"
+      },
+      {
+        "endpoint_id": "7dd77629-b592-488c-822d-704f6a896296",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/rating1.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/rating1.png"
+      },
+      {
+        "endpoint_id": "aa4a8df4-3635-4110-873d-e29f0d6fa964",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/batch_1337.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/batch_1337.png"
+      },
+      {
+        "endpoint_id": "ebaf6954-8089-488d-bd88-b3b96c0d260e",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/rating4.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/rating4.png"
+      },
+      {
+        "endpoint_id": "30ac95f2-2c65-4711-8288-b465384f279c",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/3.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/3.png"
+      },
+      {
+        "endpoint_id": "2c68658e-75b2-4758-ab10-35707ed90c6a",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/1.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/1.png"
+      },
+      {
+        "endpoint_id": "a8bfdc2c-c115-414e-94ec-848fa8f680a9",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/7.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/7.png"
+      },
+      {
+        "endpoint_id": "5cc323b2-d530-49f9-b6fb-ff6a5155a5fc",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/rating2.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/rating2.png"
+      },
+      {
+        "endpoint_id": "c6dbf538-d162-4913-83c3-0a31ea9d646a",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/2.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/2.png"
+      },
+      {
+        "endpoint_id": "d1050518-8a91-4c6d-9f40-719d914c5da9",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/12.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/12.png"
+      },
+      {
+        "endpoint_id": "a8254d37-2fae-47af-96dd-7153de44abb8",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/9.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/9.png"
+      },
+      {
+        "endpoint_id": "a25bf3bd-9f89-49a5-8d59-f5a4aeecea6e",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/6.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/6.png"
+      },
+      {
+        "endpoint_id": "ff8def3c-c311-4b10-a828-6ee7c83a50f3",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/kettle_still.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/kettle_still.png"
+      },
+      {
+        "endpoint_id": "c72f820b-63a2-4aae-9de3-9086364dbd0d",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/original_dry_sqli.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/original_dry_sqli.png"
+      },
+      {
+        "endpoint_id": "5f027f72-610f-45db-b2a9-9a53fcc72199",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/purple_hat.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/purple_hat.png"
+      },
+      {
+        "endpoint_id": "a381895a-6fae-4857-8044-dc419ae7e5e0",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/lost_in_a_heyes.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/lost_in_a_heyes.png"
+      },
+      {
+        "endpoint_id": "f61d9641-36d8-4103-b892-7389f43af829",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/productcatalog/products/4.png",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/productcatalog/products/4.png"
+      },
+      {
+        "endpoint_id": "c3f73553-e92c-460d-af72-563fcfaa1c56",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:form:action",
+          "sources": [
+            "html:form:action",
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [
+          "back",
+          "search"
+        ],
+        "path": "/blog/",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/blog/"
+      },
+      {
+        "endpoint_id": "dff8cd31-1635-4afa-b80f-4e20dd65f83a",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:link:href",
+          "sources": [
+            "html:link:href"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/css/labsBlog.css",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/css/labsBlog.css"
+      },
+      {
+        "endpoint_id": "db0d2c62-fe8c-4a45-8ce4-016ab17cc2e8",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/deparam.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/deparam.js"
+      },
+      {
+        "endpoint_id": "0b5a4276-e181-4525-ad33-f6021de81170",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/searchLogger.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/searchLogger.js"
+      },
+      {
+        "endpoint_id": "ee956292-0b57-49fc-8e99-7881dabe0f4c",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/blog/posts/4.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/blog/posts/4.jpg"
+      },
+      {
+        "endpoint_id": "1115fd0c-e59e-48fe-a556-a920e36c656c",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/blog/posts/6.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/blog/posts/6.jpg"
+      },
+      {
+        "endpoint_id": "dc1d13a0-0f72-4d08-b447-293d38f40230",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/blog/posts/1.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/blog/posts/1.jpg"
+      },
+      {
+        "endpoint_id": "1a11da53-5e11-4004-8b88-40cd150d2941",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/image/scanme/blog/posts/2.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/image/scanme/blog/posts/2.jpg"
+      },
+      {
+        "endpoint_id": "6d8bfb26-d893-46cb-a5fe-50bdcc108c2f",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/about"
+          ],
+          "parent_url": "https://ginandjuice.shop/about",
+          "source": "html:source:src",
+          "sources": [
+            "html:source:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/gin-and-juice-team.mp4",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/gin-and-juice-team.mp4"
+      },
+      {
+        "endpoint_id": "bc499647-f45c-4a98-93d9-9f3d861727de",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/about"
+          ],
+          "parent_url": "https://ginandjuice.shop/about",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/gin-and-juice-distillery.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/gin-and-juice-distillery.jpg"
+      },
+      {
+        "endpoint_id": "a9ff3577-561a-4c83-8e30-070e2d0f092c",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/about",
+          "source": "javascript:string",
+          "sources": [
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/gin-and-juice-team.jpg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/gin-and-juice-team.jpg"
+      },
+      {
+        "endpoint_id": "4b94a811-3ebc-41b9-9469-9761f31b4953",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/my-account",
+          "source": "html:form:action",
+          "sources": [
+            "html:form:action"
+          ]
+        },
+        "method": "POST",
+        "parameters": [
+          "csrf",
+          "username"
+        ],
+        "path": "/login",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/login"
+      },
+      {
+        "endpoint_id": "65148e57-108d-44bc-a800-357e8e58ba02",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [],
+          "parent_url": "https://ginandjuice.shop/my-account",
+          "source": "javascript:string",
+          "sources": [
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/login",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/login"
+      },
+      {
+        "endpoint_id": "d35b11e9-790e-4297-8c17-1a1daf69d50c",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/catalog/product?productId=1",
+          "source": "html:form:action",
+          "sources": [
+            "html:form:action"
+          ]
+        },
+        "method": "POST",
+        "parameters": [
+          "productId",
+          "storeId"
+        ],
+        "path": "/catalog/product/stock",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/product/stock"
+      },
+      {
+        "endpoint_id": "190a51eb-26d5-4717-9dbd-0092fb6dcc51",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/catalog/product?productId=1",
+          "source": "html:form:action",
+          "sources": [
+            "html:form:action"
+          ]
+        },
+        "method": "POST",
+        "parameters": [
+          "productId",
+          "quantity",
+          "redir"
+        ],
+        "path": "/catalog/cart",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/cart"
+      },
+      {
+        "endpoint_id": "33a219bf-0bc7-459f-8d23-25fbe09937c3",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog/product?productId=1"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog/product?productId=1",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/xmlStockCheckPayload.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/xmlStockCheckPayload.js"
+      },
+      {
+        "endpoint_id": "068254da-ac8d-4add-8935-53f1149ff607",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/catalog/product?productId=1"
+          ],
+          "parent_url": "https://ginandjuice.shop/catalog/product?productId=1",
+          "source": "html:script:src",
+          "sources": [
+            "html:script:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/js/stockCheck.js",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/js/stockCheck.js"
+      },
+      {
+        "endpoint_id": "bde95a0e-54bd-43cb-a3a5-163b518c46ad",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [],
+          "parent_url": "https://ginandjuice.shop/catalog/product?productId=1",
+          "source": "javascript:string",
+          "sources": [
+            "javascript:string",
+            "web:page"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/catalog/product/stock",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/catalog/product/stock"
+      },
+      {
+        "endpoint_id": "64a9a03f-3589-4d9b-84ac-a28d3b97d9d5",
+        "metadata": {
+          "discovered_by": "web",
+          "discovered_from_values": [
+            "https://ginandjuice.shop/blog/post?postId=3"
+          ],
+          "parent_url": "https://ginandjuice.shop/blog/post?postId=3",
+          "source": "html:img:src",
+          "sources": [
+            "html:img:src",
+            "javascript:string"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/resources/images/avatar.svg",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/resources/images/avatar.svg"
+      },
+      {
+        "endpoint_id": "ea8a70e5-3d2a-48b9-9a4b-d96153cc582b",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "robots:robots.txt",
+          "sources": [
+            "robots:robots.txt"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/robots.txt",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/robots.txt"
+      },
+      {
+        "endpoint_id": "4ab99016-508d-4760-b7aa-fe1075dbbf1d",
+        "metadata": {
+          "discovered_by": "web",
+          "parent_url": "https://ginandjuice.shop/",
+          "source": "sitemap:sitemap.xml",
+          "sources": [
+            "sitemap:sitemap.xml"
+          ]
+        },
+        "method": "GET",
+        "parameters": [],
+        "path": "/sitemap.xml",
+        "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597",
+        "url": "https://ginandjuice.shop/sitemap.xml"
+      }
+    ],
+    "host": "ginandjuice.shop",
+    "metadata": {},
+    "port": 443,
+    "scheme": "https",
+    "target_id": "target:f2aef6b6-befd-4afb-8bf5-27d7ed5a9597"
+  },
+  "tests": [
+    {
+      "allowed_methods": [
+        "GET",
+        "POST",
+        "PUT",
+        "PATCH"
+      ],
+      "description": "Detect reflection of a unique inert marker.",
+      "metadata": {
+        "inventory_check_id": "XSS-01"
+      },
+      "name": "Reflected XSS",
+      "prerequisites": [],
+      "safety_constraints": [
+        "authorized_scope_only",
+        "bounded_requests",
+        "inert_marker_only",
+        "no_credential_harvesting",
+        "no_waf_bypass",
+        "no_destructive_actions"
+      ],
+      "test_id": "XSS-01",
+      "vulnerability_family": "xss"
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "result_id": "result-BUSINESS-01-target:c24f02da-7bc0-4974-8850-31ed92df9880-023850e4-1ba7-4a97-bd30-2f5708d3d569:validation",
+  "finding_id": "result-BUSINESS-01-target:c24f02da-7bc0-4974-8850-31ed92df9880-023850e4-1ba7-4a97-bd30-2f5708d3d569",
+  "target_id": "target:c24f02da-7bc0-4974-8850-31ed92df9880",
+  "endpoint_id": "023850e4-1ba7-4a97-bd30-2f5708d3d569",
+  "decision": "NOT_CONFIRMED",
+  "state": "NOT_CONFIRMED",
+  "observation": "Validation requires explicit mutation material, but Project 3 supplied no validation_plan.mutation.",
+  "baseline": null,
+  "validation_observations": [],
+  "comparisons": [],
+  "evidence": [],
+  "errors": [],
+  "requests_used": 0,
+  "metadata": {
+    "test_id": "BUSINESS-01",
+    "strategy_registered": false,
+    "registry_resolved": true,
+    "family": "business_logic",
+    "check_name": "Workflow Sequence Validation",
+    "validation_mode": "workflow_invariant",
+    "requires_mutation": true,
+    "requires_control_pair": true,
+    "safe_by_default": true,
+    "family_strategy_registered": true,
+    "family_strategy": "BusinessLogicStrategy",
+    "validation_material_required": true,
+    "validation_material_available": false
+  }
+}
