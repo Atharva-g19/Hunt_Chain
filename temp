@@ -1,0 +1,950 @@
+Hunt_Chain — Complete Project Picture
+1. What Hunt_Chain actually is
+Hunt_Chain is not supposed to be one giant vulnerability scanner.
+The architecture is a chain of specialized security-testing components:
+Bug Bounty / Authorized Assessment
+             │
+             ▼
+      PROJECT 1
+      ScopeGuard
+             │
+       Authorization
+             │
+             ▼
+      PROJECT 2
+   Recon & Attack Surface
+             │
+      Attack Surface
+             │
+             ▼
+      PROJECT 3
+ Vulnerability Testing
+             │
+       Potential Findings
+             │
+             ▼
+      PROJECT 4
+ Validation + Controlled
+ Impact/Exploitation
+             │
+      Confirmed Findings
+             │
+             ▼
+      PROJECT 5
+ Findings & Reporting
+             │
+             ▼
+       Final Report
+
+The repository README describes the same fundamental philosophy: each project has a specific responsibility and produces structured information consumed by the next stage. GitHub
+2. PROJECT 1 — ScopeGuard
+Purpose
+Determine whether a target is authorized before anything else happens.
+ScopeGuard takes a manually prepared, machine-readable bug-bounty scope and classifies a target as:
+IN_SCOPE
+OUT_OF_SCOPE
+UNKNOWN
+CONFLICT
+
+The important security principle is fail closed:
+Cannot determine authorization
+        ↓
+DO NOT TEST
+
+The GitHub README describes ScopeGuard as a deterministic target authorization engine. GitHub
+What Project 1 provides
+Scope definition
+      ↓
+Parsing
+      ↓
+Normalization
+      ↓
+Target matching
+      ↓
+Authorization decision
+      ↓
+authorization_result.json
+
+V1 boundary
+Your established V1 rule remains:
+No Android / iOS / mobile application testing in V1.
+That is explicitly reflected in the Project 3 family specification as well. GitHub
+3. PROJECT 2 — Recon & Attack Surface Suite
+This is your discovery and mapping layer.
+Project 2 receives an authorized target and builds an Attack Surface Model V1.
+The repository currently documents these V1 capabilities: GitHub
+Discovery
+- Certificate Transparency discovery
+- Asset discovery
+- Asset normalization
+- Deduplication
+- DNS resolution
+- DNS analysis
+- Wildcard DNS detection
+- Potential dangling CNAME indicators
+Infrastructure intelligence
+- Response SHA-256 hashing
+- Technology fingerprinting
+- Infrastructure intelligence
+- Shared-IP awareness
+- Correlation
+Output
+attack_surface.json
+recon_report.txt
+
+Important Project 2 restriction
+Project 2 does not perform vulnerability exploitation.
+The repository explicitly excludes:
+- SQL injection testing
+- XSS exploitation
+- Authentication attacks
+- Password attacks
+- Nuclei scanning
+- WAF bypass
+- Aggressive brute force
+- DNS takeover exploitation
+- Full cloud enumeration
+Those belong later in the chain. GitHub
+So:
+P1 = Can I test it?
+P2 = What exists?
+P3 = What might be vulnerable?
+
+4. PROJECT 3 — Vulnerability Testing Toolkit
+This is the main/pillar project.
+The official repository describes Project 3 as consuming Project 2's Attack Surface V1 and performing controlled, explainable vulnerability tests. GitHub
+The architecture is:
+Project 2 Attack Surface
+          ↓
+Input / Target Models
+          ↓
+Authorization
+          ↓
+Execution Controller
+          ↓
+Controlled HTTP Transport
+          ↓
+Vulnerability Testers
+          ↓
+Evidence + Results
+          ↓
+Validation / Deduplication
+          ↓
+V1 Output
+
+5. Project 3's biggest architectural change
+Originally you had the huge:
+500 testers
+
+model.
+That was replaced.
+The current V1 specification says the old 500-tester inventory is deprecated and Project 3 now uses:
+22 primary vulnerability families
+The GitHub specification explicitly lists these 22. GitHub
+#	Family
+1	RCE
+2	Authentication Bypass
+3	SQL Injection
+4	SSRF
+5	XXE Injection
+6	IDOR / BOLA
+7	Broken Function-Level Authorization / Privilege Escalation
+8	Business Logic Flaws
+9	Account Takeover Chains
+10	BOPLA / Mass Assignment
+11	XSS
+12	CSRF
+13	Subdomain Takeover
+14	Sensitive / Information Disclosure
+15	Path Traversal / LFI / Insecure File Upload
+16	Open Redirect
+17	Security Misconfiguration
+18	CORS Misconfiguration
+19	Unrestricted Resource Consumption
+20	Clickjacking
+21	Improper Inventory Management
+22	Unsafe Consumption of 3rd-Party APIs
+
+
+The repository explicitly says sub-checks are defined separately, so 22 families does not mean only 22 tests. GitHub
+6. Project 3 tester architecture
+The important design is:
+22 Families
+      ↓
+Family-specific testers
+      ↓
+Sub-checks
+      ↓
+TestResult
+      ↓
+Evidence
+      ↓
+POTENTIAL / NOT_DETECTED / ...
+
+The tester inventory, registry, execution runner, result models, transport, authorization and evidence systems are already represented in the repository.
+You also have the newer:
+testers_v1
+
+foundation rather than relying on the old 500-tester architecture.
+7. Project 3's job
+Project 3 should answer:
+"Is there enough technical evidence to flag this as a potential vulnerability?"
+
+It should not automatically claim that every POTENTIAL finding is a real vulnerability.
+Therefore:
+NOT_DETECTED
+
+means no meaningful indicator was found.
+POTENTIAL
+
+means:
+There is enough evidence to send this candidate into Project 4.
+
+This distinction is extremely important.
+8. Project 3 → Project 4 handoff
+This is the area we have been working on recently.
+A Project 3 result can now contain:
+validation_plan
+
+which can include:
+CONTROL REQUEST
+        +
+MUTATION REQUEST
+
+For example, SQLI-08:
+Normal request
+      ↓
+Control
+
+Modified request
+      ↓
+Mutation
+
+That is much better than Project 4 having to invent its own test from scratch.
+9. Our current SQLI-08 problem
+This is the current active problem.
+The SQLI-08 implementation now contains:
+validation_plan = ValidationPlan(    control=ValidationRequest(...),    mutation=ValidationRequest(...),)
+
+
+and:
+mutation_value = "administrator'--"
+
+
+and finally:
+validation_plan=validation_plan
+
+
+So the source code implementation is correct.
+The intended flow for the PortSwigger login candidate is:
+POST /login
+      ↓
+username parameter
+      ↓
+Project 3 detects candidate
+      ↓
+POTENTIAL
+      ↓
+Control request
+      ↓
+Mutation:
+administrator'--
+      ↓
+Project 4
+
+However, the previously generated vulnerability_result.json that we inspected contained:
+SQLI-08
+validation_plan: null
+
+So the remaining thing we need to verify is the newly generated output, not the source code.
+That is why we have not yet declared this issue finished.
+10. PROJECT 4 — This is where your question is important
+Your GitHub repository currently calls the directory:
+Project_4_Validation_Exploitation
+
+And this is significant:
+Project 4 already contains exploitation code.
+I checked the actual repository structure.
+It contains:
+validation/
+    engine.py
+    family_registry.py
+    family_strategies.py
+    observation.py
+    plan.py
+    profiles.py
+    result.py
+    strategy.py
+
+exploitation/
+    executor.py
+    gate.py
+    models.py
+    result.py
+    strategy.py
+
+results/
+    assessment.py
+    handoff.py
+
+So yes — you were right to point out that I was previously describing only the validation half.
+11. Project 4 actually has TWO major parts
+PART A — Validation
+Input:
+Project 3 vulnerability_result.json
+
+Project 4 selects:
+POTENTIAL
+
+findings.
+Then it determines how that vulnerability family should be validated.
+For example:
+SQL Injection
+      ↓
+input differential
+      ↓
+control + mutation
+
+The current repository has validation profiles for families including:
+- ATO
+- Authentication Bypass
+- Function Authorization
+- BOPLA
+- Clickjacking
+- CORS
+- CSRF
+- Sensitive Disclosure
+- Path Traversal / Upload
+- IDOR/BOLA
+- Inventory Management
+- Business Logic
+- Security Misconfiguration
+- RCE
+- Open Redirect
+- Resource Consumption
+- SQL Injection
+- SSRF
+- Subdomain Takeover
+- Third-party API
+- XSS
+- XXE
+Each family has properties such as:
+validation_mode
+requires_mutation
+requires_control_pair
+safe_by_default
+
+That is already implemented in the repository.
+12. Project 4 validation lifecycle
+The intended lifecycle is:
+P3 POTENTIAL
+      ↓
+Candidate loading
+      ↓
+Candidate selection
+      ↓
+Authorization check
+      ↓
+Validation preflight
+      ↓
+Baseline
+      ↓
+Control
+      ↓
+Mutation
+      ↓
+Response observation
+      ↓
+Comparison
+      ↓
+Family strategy
+      ↓
+CONFIRMED / NOT_CONFIRMED
+
+The validation engine actually converts the strategy result into:
+CONFIRMED
+
+or:
+NOT_CONFIRMED
+
+with error/block states also available.
+13. Example: SQL Injection
+For SQL injection:
+Project 3
+     ↓
+SQLI-02 POTENTIAL
+     ↓
+Project 4
+     ↓
+TRUE mutation
+     ↓
+FALSE mutation
+     ↓
+Response comparison
+     ↓
+SQLi validation strategy
+     ↓
+CONFIRMED / NOT_CONFIRMED
+
+We already tested this architecture with SQLI-02.
+The working result was:
+TRUE:
+' AND '1'='1
+
+FALSE:
+' AND '1'='2
+
+and Project 4 was able to distinguish the responses.
+14. PART B — Controlled exploitation
+This is the part you correctly pointed out.
+The repository already has:
+exploitation/executor.py
+exploitation/gate.py
+exploitation/strategy.py
+exploitation/result.py
+
+The exploitation gate requires:
+Finding CONFIRMED
+        +
+Target authorized
+        +
+Exploitation strategy available
+        +
+Action budget available
+        ↓
+EXploitation allowed
+
+The actual gate model explicitly checks:
+confirmed
+authorized
+strategy_available
+within_budget
+
+Only if all four are true can exploitation proceed.
+15. Why this architecture is good
+It prevents:
+P3 POTENTIAL
+     ↓
+automatic exploitation
+
+Instead:
+P3 POTENTIAL
+     ↓
+P4 VALIDATION
+     ↓
+CONFIRMED
+     ↓
+EXPLOITATION GATE
+     ↓
+controlled exploitation
+
+So Project 4 isn't just:
+"Run payload."
+
+It is:
+Validate first, then permit controlled impact demonstration only when the finding passes the required gates.
+
+16. Exploitation must remain bounded
+The current Project 4 code has:
+max_validation_requests = 10
+max_exploitation_requests = 5
+
+and an ActionBudget.
+An exploitation action also checks that:
+- URL is HTTP/HTTPS
+- URL has a hostname
+- hostname matches authorized target
+- port matches where applicable
+- credentials aren't embedded in URL
+- strategy exists
+- action matches the strategy
+So exploitation is not supposed to become an unrestricted attack engine.
+17. Project 4 → Project 5 handoff
+This is another very important architecture point.
+The repository already has:
+Project4FindingHandoff
+
+with:
+finding_id
+test_id
+target_id
+endpoint_id
+title
+validation_decision
+exploitation_decision
+validation_evidence
+impact_evidence
+metadata
+
+Therefore the intended output is essentially:
+Finding
+   │
+   ├── Validation result
+   │
+   ├── Validation evidence
+   │
+   ├── Exploitation result
+   │
+   └── Impact evidence
+          ↓
+     PROJECT 5
+
+The Project 4 assessment object also tracks:
+finding_count
+confirmed_count
+exploited_count
+
+This is strong evidence that controlled exploitation is part of the current repository architecture, not something we invented now.
+18. PROJECT 5 — Findings & Reporting Manager
+Project 5 is not currently present as a top-level implementation directory in the GitHub repository.
+But it is already defined architecturally.
+The README describes Project 5 as:
+Raw Finding
+    ↓
+Validation
+    ↓
+Evidence
+    ↓
+Report Generation
+
+And Project 4's handoff explicitly describes its output as a Project 5-compatible finding handoff.
+So Project 5 should eventually consume:
+Project 4 findings
+
+rather than directly consuming raw Project 3 results.
+19. What Project 5 should do
+The eventual Project 5 should take confirmed findings and organize them into professional security findings.
+At minimum:
+Finding ID
+Test ID
+Vulnerability
+Target
+Endpoint
+Parameter
+Description
+Evidence
+Validation result
+Impact
+Exploitation evidence
+Severity
+Risk
+Reproduction
+Remediation
+References
+
+And generate:
+machine-readable findings
+        +
+human-readable report
+
+Potential final output:
+assessment/
+    findings.json
+    report.json
+    report.md
+    report.html / pdf
+
+But we should not start implementing this until Project 4's V1 is stable, unless you explicitly change the sequence.
+20. Complete Hunt_Chain data flow
+This is the most important diagram for your whole project:
+                 AUTHORIZED PROGRAM
+                        │
+                        ▼
+              ┌───────────────────┐
+              │ PROJECT 1         │
+              │ ScopeGuard        │
+              └─────────┬─────────┘
+                        │
+                authorization_result
+                        │
+                        ▼
+              ┌───────────────────┐
+              │ PROJECT 2         │
+              │ Recon             │
+              └─────────┬─────────┘
+                        │
+                  attack_surface
+                        │
+                        ▼
+              ┌───────────────────┐
+              │ PROJECT 3         │
+              │ Vulnerability     │
+              │ Testing           │
+              └─────────┬─────────┘
+                        │
+              vulnerability_result
+                        │
+               POTENTIAL findings
+                        │
+                        ▼
+              ┌───────────────────┐
+              │ PROJECT 4         │
+              │ VALIDATION        │
+              └─────────┬─────────┘
+                        │
+             ┌──────────┴──────────┐
+             │                     │
+        NOT_CONFIRMED          CONFIRMED
+             │                     │
+             │                     ▼
+             │             EXPLOITATION GATE
+             │                     │
+             │              ┌──────┴──────┐
+             │              │             │
+             │          BLOCKED       ALLOWED
+             │                            │
+             │                            ▼
+             │                    CONTROLLED IMPACT
+             │                            │
+             │                            ▼
+             └──────────────┬─────────────┘
+                            │
+                            ▼
+                   PROJECT 5
+              Findings & Reporting
+                            │
+                            ▼
+                   FINAL SECURITY REPORT
+
+21. What is already done
+Based on the current repository + our work:
+Project 1
+ScopeGuard V1
+Core authorization engine is implemented.
+Project 2
+Recon V1
+The repository documents it as complete pending final repository verification. GitHub
+Current flow works:
+authorization_result
+        ↓
+Project 2
+        ↓
+attack_surface.json
+
+Project 3
+Major foundation is implemented:
+- authorization
+- attack-surface consumption
+- execution controller
+- HTTP transport
+- tester registry
+- vulnerability families
+- result model
+- evidence
+- output
+- V1 tester architecture
+- 22-family structure
+- validation-plan handoff
+And we've recently been fixing SQLI-08.
+Project 4
+A substantial architecture already exists:
+- Project 3 input loader
+- candidate selection
+- inventory/profile registry
+- validation profiles
+- validation engine
+- response observations
+- comparison
+- validation strategies
+- validation result
+- exploitation gate
+- exploitation strategy registry
+- controlled exploitation executor
+- impact evidence
+- assessment result
+- Project 5 handoff
+So Project 4 is much further along architecturally than just a "manual testing companion."
+22. What is currently unfinished
+🔴 1. SQLI-08 P3 → P4 handoff
+This is our immediate issue.
+Source implementation now has:
+ValidationPlan
+ ├── control
+ └── mutation
+
+but we need to regenerate:
+vulnerability_result.json
+
+and verify the real /login candidate actually contains it.
+🔴 2. Project 4 needs full real-target validation
+Unit tests are not enough.
+We need to verify:
+P3 real output
+     ↓
+P4 candidate loading
+     ↓
+P4 validation
+     ↓
+actual HTTP request
+     ↓
+actual response
+     ↓
+CONFIRMED / NOT_CONFIRMED
+
+SQLI-02 already demonstrated this pathway.
+SQLI-08 is the current test case we're fixing.
+🔴 3. Project 4 exploitation needs end-to-end verification
+The architecture exists, but we need to prove:
+NOT_CONFIRMED
+       ↓
+exploitation blocked
+
+CONFIRMED
+       ↓
+authorization checked
+       ↓
+strategy checked
+       ↓
+budget checked
+       ↓
+controlled exploitation
+       ↓
+impact evidence
+
+The repository's tests cover many of these boundaries, but the complete real assessment lifecycle still needs integration verification.
+🔴 4. Exploitation strategies need coverage
+The repository has the strategy registry architecture, but an important distinction exists:
+Validation family exists
+        ≠
+Exploitation strategy automatically exists
+
+The current strategy registry deliberately requires an explicit exploitation strategy.
+So we need to determine, family by family:
+22 validation families
+        ↓
+Which can have controlled impact demonstration?
+        ↓
+Which have a safe bounded strategy?
+        ↓
+Which must remain validation-only?
+
+This is an important Project 4 V1 task.
+🔴 5. Project 5 does not yet exist as a full implementation
+The architecture is defined, and Project 4 already creates a Project-5-compatible handoff.
+But we still need the actual:
+Project 5
+Findings & Reporting Manager
+
+23. What we should NOT add
+Because of your V1 rules, we should not suddenly add:
+- Android testing
+- iOS testing
+- mobile testing
+- unrestricted exploitation
+- arbitrary brute forcing
+- WAF bypass engine
+- password cracking
+- cloud-wide enumeration
+- autonomous unrestricted attack agent
+- local-lab architecture
+- Juice Shop hard-coding
+- PortSwigger hard-coding
+- Nuclei replacement
+- giant 500-tester architecture again
+The repository's Project 3 specification specifically says the old 500-tester implementation is deprecated and that V1 is the 22-family model. GitHub
+24. What we SHOULD add/finalize
+Here's the actual remaining roadmap I'd use.
+PHASE 1 — Finish Project 3
+P3-A
+Verify all 22 families.
+P3-B
+Verify every sub-check is correctly registered.
+P3-C
+Verify tester inventory ↔ implementation ↔ registry consistency.
+P3-D
+Verify every tester returns canonical TestResult.
+P3-E
+Verify evidence generation.
+P3-F
+Verify validation-plan generation where required.
+P3-G
+Verify P3 → P4 serialization.
+P3-H
+Run complete P3 test suite.
+25. PHASE 2 — Finish Project 4 Validation
+For each validation family:
+P3 POTENTIAL
+      ↓
+P4 candidate
+      ↓
+preflight
+      ↓
+authorization
+      ↓
+baseline
+      ↓
+validation request(s)
+      ↓
+comparison
+      ↓
+family strategy
+      ↓
+CONFIRMED / NOT_CONFIRMED
+
+Need tests for:
+- missing mutation
+- missing control
+- invalid target
+- out-of-scope target
+- malformed URL
+- request failure
+- response missing
+- ambiguous candidate
+- duplicate candidate
+- incorrect family mapping
+- incorrect test ID
+- validation strategy failure
+- evidence preservation
+26. PHASE 3 — Project 4 controlled exploitation
+This is the part you specifically reminded me about.
+We need:
+Exploitation gate
+CONFIRMED?
+      ↓
+AUTHORIZED?
+      ↓
+STRATEGY AVAILABLE?
+      ↓
+BUDGET AVAILABLE?
+      ↓
+ALLOW
+
+Strategy registry
+Explicit strategy per supported family.
+Target boundary
+Ensure exploitation cannot escape the authorized target.
+Request budget
+Bound exploitation requests.
+Impact evidence
+Capture:
+what was demonstrated
+how it was demonstrated
+response/evidence
+action number
+target
+finding
+
+No exploitation for:
+NOT_CONFIRMED
+BLOCKED
+ERROR
+
+27. PHASE 4 — Project 4 assessment aggregation
+We need to be able to process multiple findings:
+Assessment
+ ├── SQLI-02
+ ├── SQLI-08
+ ├── XSS-...
+ ├── IDOR-...
+ └── ...
+
+and produce:
+total findings
+confirmed
+not confirmed
+blocked
+errors
+exploited
+not exploited
+
+The current Project4AssessmentResult already has the beginning of this model.
+28. PHASE 5 — Project 4 → Project 5 handoff
+Every confirmed finding should have:
+finding_id
+test_id
+target_id
+endpoint_id
+title
+
+validation_decision
+validation_evidence
+
+exploitation_decision
+impact_evidence
+
+metadata
+
+Then:
+Project 5
+
+does not need to understand how Project 3 detected the vulnerability.
+It receives a clean finding.
+29. PHASE 6 — Project 5
+Project 5 should become the final reporting layer:
+Project 4 finding
+       ↓
+Finding normalization
+       ↓
+Deduplication
+       ↓
+Severity assessment
+       ↓
+Impact
+       ↓
+Evidence
+       ↓
+Remediation
+       ↓
+Report
+
+Potential formats:
+JSON
+Markdown
+HTML
+PDF
+
+with a bug-bounty/security-assessment style report.
+30. The most important distinction in the whole project
+Your architecture should maintain these states:
+DISCOVERED
+    ↓
+POTENTIAL
+    ↓
+VALIDATING
+    ↓
+CONFIRMED / NOT_CONFIRMED
+    ↓
+CONTROLLED IMPACT
+    ↓
+REPORTABLE FINDING
+
+Never collapse these into:
+"scanner found vulnerability"
+
+because that defeats the purpose of having Projects 3 and 4 separately.
+31. Current status — simplified
+Project	Purpose	Current state
+P1 ScopeGuard	Authorization	🟢 Core V1 complete
+P2 Recon	Attack Surface	🟢 V1 implemented
+P3 Vulnerability	Detect potential vulnerabilities	🟡 Main pillar, final integration/verification
+P4 Validation	Confirm/refute findings	🟡 Architecture implemented, needs full end-to-end verification
+P4 Exploitation	Controlled impact after confirmation	🟡 Architecture exists, needs strategy/real-flow verification
+P5 Reporting	Final findings/report	🔴 Not yet implemented as full project
+
+
+32. Our immediate work
+So I would not start adding random new features now.
+The correct sequence is:
+1. Finish SQLI-08 P3 validation-plan handoff
+              ↓
+2. Run P4 SQLI-08 validation
+              ↓
+3. Confirm / Not Confirmed
+              ↓
+4. Verify P4 exploitation gate
+              ↓
+5. Verify controlled exploitation
+              ↓
+6. Verify impact evidence
+              ↓
+7. Verify P4 → P5 handoff
+              ↓
+8. Freeze P4 V1
+              ↓
+9. Start Project 5
+
+And one correction to our previous discussion is important: the current GitHub code clearly contains Project 4 exploitation infrastructure. The Project 3 V1 family specification itself also says Project 4 handles controlled impact/exploitation only after confirmation. GitHub
+So your overall Hunt_Chain isn't merely:
+Scope → Recon → Scan → Validate → Report
+It is:
+Scope → Recon → Detect → Validate → Confirm → Controlled Impact → Evidence → Report.
