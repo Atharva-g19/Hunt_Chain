@@ -1,13 +1,13 @@
 {
   "state": "IN_SCOPE",
   "target": {
-    "raw_value": "https://ginandjuice.shop/",
-    "normalized_value": "https://ginandjuice.shop/",
+    "raw_value": "https://0af7003a049d76c4806e1c1c0087004c.web-security-academy.net/",
+    "normalized_value": "https://0af7003a049d76c4806e1c1c0087004c.web-security-academy.net/",
     "type": "url"
   },
   "matched_rules": [
-    "GIN-JUICE-SHOP-WEB-001"
+    "S001"
   ],
-  "winning_rule": "GIN-JUICE-SHOP-WEB-001",
-  "reason": "Rule GIN-JUICE-SHOP-WEB-001 matched with specificity 100"
+  "winning_rule": "S001",
+  "reason": "Rule S001 matched with specificity 100"
 }

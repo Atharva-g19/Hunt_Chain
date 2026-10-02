@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 from pathlib import Path
@@ -107,20 +107,44 @@ def _run_project_3(
 
     print()
     print("-" * 60)
-    print("Project 3 execution")
+    print("Project 3 Scope Options:")
+    print("  1. Run All Testers (Full scan — 168 checks)")
+    print("  2. Run SQL Injection Family (SQLI-01 through SQLI-10)")
+    print("  3. Run Specific Tester(s) (e.g. SQLI-08)")
     print("-" * 60)
+    scope_choice = input("Select testing scope [1-3, default=1]: ").strip()
+
+    test_ids = None
+    if scope_choice == "2":
+        test_ids = [
+            "SQLI-01", "SQLI-02", "SQLI-03", "SQLI-04", "SQLI-05",
+            "SQLI-06", "SQLI-07", "SQLI-08", "SQLI-09", "SQLI-10",
+        ]
+        print()
+        print("Running SQL Injection Family (10 checks)...")
+    elif scope_choice == "3":
+        custom = input("Enter tester ID(s) separated by spaces [e.g. SQLI-08]: ").strip()
+        if custom:
+            test_ids = [tid.strip().upper() for tid in custom.split() if tid.strip()]
+            print()
+            print(f"Running custom test IDs: {', '.join(test_ids)}...")
+        else:
+            print()
+            print("No test IDs specified. Running all 168 testers...")
+    else:
+        print()
+        print("Running all 168 registered vulnerability testers...")
+
     print()
     print("Using Project 1 authorization...")
     print("Using Project 2 attack surface...")
-    print("Loading 168 registered vulnerability testers...")
-    print()
-    print("Running vulnerability testing...")
     print()
 
     try:
         run_project_3(
             assessment_name,
             runs_directory=runs_directory,
+            test_ids=test_ids,
         )
     except (
         FileNotFoundError,

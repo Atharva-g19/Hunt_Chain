@@ -117,8 +117,19 @@ class ApplicationRunner:
             )
 
         if not pipeline_result.completed:
+            failed_stage = (
+                pipeline_result.failed_stage
+                or "unknown"
+            )
+
+            error = (
+                pipeline_result.error
+                or "unknown pipeline error"
+            )
+
             raise ApplicationRunnerError(
-                "Project 2 pipeline failed."
+                f"Project 2 pipeline failed at stage "
+                f"'{failed_stage}': {error}"
             )
 
         stage_result = pipeline_result.stage_results.get(

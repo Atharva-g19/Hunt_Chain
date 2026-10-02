@@ -542,6 +542,16 @@
               "type": "string"
             }
           }
+        },
+        "body_parameter_values": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "description": "Observed values for discovered form or structured-body parameters."
         }
       }
     },

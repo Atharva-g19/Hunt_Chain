@@ -101,6 +101,11 @@ class Endpoint(BaseModel):
         description="Form or structured-body parameters discovered on the endpoint.",
     )
 
+    body_parameter_values: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Observed values for discovered form or structured-body parameters.",
+    )
+
     content_type: str | None = Field(
         default=None,
         description="Observed or discovered request content type.",

@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 from hunt_chain_core.workflow import AssessmentWorkflow
@@ -50,7 +51,9 @@ def run_project_2(
     )
 
     command = [
-        "hunt-chain-recon",
+        sys.executable,
+        "-m",
+        "hunt_chain_recon",
         str(authorization_artifact),
         "--output",
         str(output_directory),

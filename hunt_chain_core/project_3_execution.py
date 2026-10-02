@@ -1,6 +1,6 @@
-﻿from __future__ import annotations
-
+import os
 import subprocess
+import sys
 from pathlib import Path
 
 from hunt_chain_core.workflow import AssessmentWorkflow
@@ -12,6 +12,10 @@ PROJECT_3_ROOT = (
     PROJECT_ROOT / "Project_3_Vulnerability"
 )
 
+PROJECT_3_SRC = (
+    PROJECT_3_ROOT / "src"
+)
+
 PROJECT_3_OUTPUT = (
     PROJECT_3_ROOT / "output"
 )
@@ -20,6 +24,8 @@ PROJECT_3_OUTPUT = (
 def run_project_3(
     assessment_name: str,
     runs_directory: str | Path = "Hunt_Chain_Runs",
+    test_ids: list[str] | tuple[str, ...] | None = None,
+    endpoint_ids: list[str] | tuple[str, ...] | None = None,
 ) -> Path:
     runs_path = Path(runs_directory)
 
@@ -71,7 +77,9 @@ def run_project_3(
     )
 
     command = [
-        "hunt-chain-vulnerability",
+        sys.executable,
+        "-m",
+        "hunt_chain_vulnerability",
         "--config",
         str(
             PROJECT_3_ROOT
@@ -88,13 +96,31 @@ def run_project_3(
         f"{assessment_name}-project3",
     ]
 
+    if test_ids:
+        command.extend(["--test-ids", *test_ids])
+
+    if endpoint_ids:
+        for ep in endpoint_ids:
+            command.extend(["--endpoint-id", ep])
+
     print()
     print("Starting Project 3: Vulnerability Testing")
     print("-" * 55)
 
+    environment = os.environ.copy()
+    existing_pythonpath = environment.get(
+        "PYTHONPATH",
+        "",
+    )
+    python_paths = [str(PROJECT_3_SRC)]
+    if existing_pythonpath:
+        python_paths.append(existing_pythonpath)
+    environment["PYTHONPATH"] = os.pathsep.join(python_paths)
+
     completed = subprocess.run(
         command,
         cwd=PROJECT_3_ROOT,
+        env=environment,
         text=True,
         check=False,
     )

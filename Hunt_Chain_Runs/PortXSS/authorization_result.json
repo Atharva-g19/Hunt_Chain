@@ -1,8 +1,8 @@
 {
   "state": "IN_SCOPE",
   "target": {
-    "raw_value": "https://0a2a00440310fd0a8080c6f600020082.web-security-academy.net/",
-    "normalized_value": "https://0a2a00440310fd0a8080c6f600020082.web-security-academy.net/",
+    "raw_value": "https://0a7f00570439b4b7802de48800dd00b2.web-security-academy.net/",
+    "normalized_value": "https://0a7f00570439b4b7802de48800dd00b2.web-security-academy.net/",
     "type": "url"
   },
   "matched_rules": [

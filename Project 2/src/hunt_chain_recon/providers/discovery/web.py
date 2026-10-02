@@ -18,10 +18,30 @@ from hunt_chain_recon.providers.discovery.base import DiscoveryProvider
 
 
 class _HTMLDiscoveryParser(HTMLParser):
+    """Extract URLs, resources, forms, and srcset values from HTML."""
+
+    URL_ATTRIBUTES = {
+        ("a", "href"),
+        ("area", "href"),
+        ("link", "href"),
+        ("script", "src"),
+        ("img", "src"),
+        ("iframe", "src"),
+        ("frame", "src"),
+        ("source", "src"),
+        ("video", "src"),
+        ("audio", "src"),
+        ("object", "data"),
+        ("embed", "src"),
+        ("track", "src"),
+    }
+
     def __init__(self) -> None:
-        super().__init__()
-        self.links: list[tuple[str, str]] = []
+        super().__init__(convert_charrefs=True)
+
+        self.urls: list[tuple[str, str]] = []
         self.forms: list[dict[str, Any]] = []
+        self.srcsets: list[str] = []
 
         self._current_form: dict[str, Any] | None = None
 
@@ -30,48 +50,68 @@ class _HTMLDiscoveryParser(HTMLParser):
         tag: str,
         attrs: list[tuple[str, str | None]],
     ) -> None:
-        attributes = dict(attrs)
+        tag = tag.lower()
 
-        if tag.lower() == "a":
-            href = attributes.get("href")
-            if href:
-                self.links.append(
-                    ("link", href)
+        attributes = {
+            key.lower(): value
+            for key, value in attrs
+            if key
+        }
+
+        for element, attribute in self.URL_ATTRIBUTES:
+            if tag != element:
+                continue
+
+            value = attributes.get(attribute)
+
+            if value:
+                self.urls.append(
+                    (
+                        value.strip(),
+                        f"html:{element}:{attribute}",
+                    )
                 )
 
-        elif tag.lower() == "form":
+        if tag == "img":
+            srcset = attributes.get("srcset")
+
+            if srcset:
+                self.srcsets.append(srcset)
+
+        if tag == "form":
             self._current_form = {
-                "action": attributes.get("action") or "",
+                "action": (
+                    attributes.get("action") or ""
+                ).strip(),
                 "method": (
                     attributes.get("method") or "GET"
                 ).upper(),
-                "parameters": {},
+                "parameters": [],
             }
 
-        elif (
-            tag.lower() in {"input", "textarea", "select"}
-            and self._current_form is not None
+            self.forms.append(self._current_form)
+
+        if (
+            self._current_form is not None
+            and tag in {
+                "input",
+                "textarea",
+                "select",
+            }
         ):
             name = attributes.get("name")
 
             if name:
-                value = (
-                    attributes.get("value")
-                    or ""
+                self._current_form["parameters"].append(
+                    {
+                        "name": name,
+                        "tag": tag,
+                        "type": attributes.get("type"),
+                    }
                 )
 
-                self._current_form["parameters"][
-                    name
-                ] = value
-
     def handle_endtag(self, tag: str) -> None:
-        if (
-            tag.lower() == "form"
-            and self._current_form is not None
-        ):
-            self.forms.append(
-                self._current_form
-            )
+        if tag.lower() == "form":
             self._current_form = None
 
 
