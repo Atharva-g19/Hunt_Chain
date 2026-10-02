@@ -26,9 +26,12 @@ logs/
 # VS Code
 .vscode/
 
+# Scratch & agent artifacts
+__agent__/
+copy.txt
+desktop/
+
 # OS files
 .DS_Store
 Thumbs.db
-.continue/
-
 .continue/
