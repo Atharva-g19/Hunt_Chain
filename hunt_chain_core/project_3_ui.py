@@ -202,8 +202,7 @@ def _print_categories_table() -> None:
             tag2 = f"[{c2['code']}]"
             col2 = f"  {c2['index']:2d}. {tag2:<11s} {c2['name']} ({c2['checks']})"
             print(f"{col1:<46s} {col2}")
-        else:
-            print(col1)
+    print("   0. Back")
     print("=" * 84)
 
 
@@ -215,8 +214,11 @@ def _resolve_categories(user_input: str) -> tuple[list[str] | None, list[str]]:
         default_cat = CATEGORIES[16]  # SQL Injection default
         return list(default_cat["ids"]), [f"{default_cat['name']} ({default_cat['code']})"]
 
+    if cleaned in ("0", "back"):
+        return [], ["Back"]
+
     tokens = [t.strip().lower() for t in re.split(r"[,; ]+", cleaned) if t.strip()]
-    if "all" in tokens or "0" in tokens:
+    if "all" in tokens:
         return None, ["All 22 Categories (Full Scan)"]
 
     matched_ids: list[str] = []
@@ -357,15 +359,23 @@ def _run_project_3(
     print("  1. Run All Testers (Full scan — 168 checks across 22 categories)")
     print("  2. Select Vulnerability Category / Family (22 categories available)")
     print("  3. Run Specific Tester(s) (e.g. SQLI-08, ATO-01)")
+    print("  0. Back")
     print("-" * 60)
-    scope_choice = input("Select testing scope [1-3, default=1]: ").strip()
+    scope_choice = input("Select testing scope [0-3, default=1]: ").strip()
+
+    if scope_choice in ("0", "back"):
+        print("\nReturning to assessment menu...")
+        return
 
     test_ids: list[str] | None = None
     if scope_choice == "2":
         _print_categories_table()
         cat_choice = input(
-            "\nSelect category number(s) or code(s) (e.g. 17 or SQLI or 1,2,17) [default=17]: "
+            "\nSelect category number(s) or code(s) (e.g. 17 or SQLI or 1,2,17) [0=Back, default=17]: "
         ).strip()
+        if cat_choice in ("0", "back"):
+            print("\nReturning to assessment menu...")
+            return
         test_ids, matched_names = _resolve_categories(cat_choice)
         print()
         if test_ids is None:
@@ -374,7 +384,10 @@ def _run_project_3(
             print(f"Selected: {', '.join(matched_names)}")
             print(f"Running {len(test_ids)} check(s)...")
     elif scope_choice == "3":
-        custom = input("Enter tester ID(s) separated by spaces [e.g. SQLI-08 ATO-01]: ").strip()
+        custom = input("Enter tester ID(s) separated by spaces [e.g. SQLI-08 ATO-01, 0=Back]: ").strip()
+        if custom in ("0", "back"):
+            print("\nReturning to assessment menu...")
+            return
         if custom:
             test_ids = [tid.strip().upper() for tid in custom.replace(",", " ").split() if tid.strip()]
             print()
