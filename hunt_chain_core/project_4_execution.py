@@ -1,7 +1,8 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -256,6 +257,15 @@ def run_project_4_validation(
             / PROJECT_4_RESULT
         )
 
+        existing_result = (
+            output_directory / PROJECT_4_RESULT
+        )
+        if existing_result.is_file():
+            shutil.copy2(
+                existing_result,
+                temporary_output,
+            )
+
         command = [
             sys.executable,
             "-m",
@@ -336,3 +346,180 @@ def run_project_4_validation(
             assessment_name,
             temporary_output,
         )
+
+
+def run_project_4_batch_validation(
+    assessment_name: str,
+    *,
+    result_ids: list[str] | tuple[str, ...] | None = None,
+    host: str | None = None,
+    test_id: str | None = None,
+    validate_all: bool = False,
+    runs_directory: str | Path = "Hunt_Chain_Runs",
+) -> Path:
+    """Run bounded Project 4 validation for multiple Project 3 findings in a single pass."""
+
+    workflow = AssessmentWorkflow(
+        runs_directory
+    )
+
+    project3_output = _project3_output(
+        workflow,
+        assessment_name,
+    )
+
+    authorization_artifact = _authorization_output(
+        workflow,
+        assessment_name,
+    )
+
+    if not PROJECT_4_CONFIG.is_file():
+        raise FileNotFoundError(
+            "Project 4 config does not exist: "
+            f"{PROJECT_4_CONFIG}"
+        )
+
+    if not PROJECT_3_INVENTORY.is_file():
+        raise FileNotFoundError(
+            "Project 3 tester inventory does not exist: "
+            f"{PROJECT_3_INVENTORY}"
+        )
+
+    if not project3_output.is_file():
+        raise FileNotFoundError(
+            "Project 3 vulnerability result does not exist: "
+            f"{project3_output}"
+        )
+
+    if not authorization_artifact.is_file():
+        raise FileNotFoundError(
+            "Project 1 authorization artifact does not exist: "
+            f"{authorization_artifact}"
+        )
+
+    output_directory = (
+        workflow.assessment_path(
+            assessment_name
+        ).resolve()
+    )
+
+    output_directory.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    environment = os.environ.copy()
+
+    existing_pythonpath = environment.get(
+        "PYTHONPATH",
+        "",
+    )
+
+    python_paths = [
+        str(PROJECT_4_SRC),
+        str(PROJECT_3_ROOT / "src"),
+    ]
+
+    if existing_pythonpath:
+        python_paths.append(
+            existing_pythonpath
+        )
+
+    environment["PYTHONPATH"] = (
+        os.pathsep.join(python_paths)
+    )
+
+    with tempfile.TemporaryDirectory(
+        prefix="hunt_chain_project4_batch_",
+    ) as temporary_directory:
+        temporary_output = (
+            Path(temporary_directory)
+            / PROJECT_4_RESULT
+        )
+
+        existing_result = (
+            output_directory / PROJECT_4_RESULT
+        )
+        if existing_result.is_file():
+            shutil.copy2(
+                existing_result,
+                temporary_output,
+            )
+
+        command = [
+            sys.executable,
+            "-m",
+            "hunt_chain_project4.cli",
+            "validate-batch",
+            "--config",
+            str(PROJECT_4_CONFIG),
+            "--authorization-artifact",
+            str(authorization_artifact),
+            "--project3-inventory",
+            str(PROJECT_3_INVENTORY),
+            "--project3-output",
+            str(project3_output),
+            "--output",
+            str(temporary_output),
+        ]
+
+        if validate_all:
+            command.append("--all")
+        elif result_ids:
+            cand_file = (
+                Path(temporary_directory)
+                / "candidates.json"
+            )
+            cand_file.write_text(
+                json.dumps(list(result_ids)),
+                encoding="utf-8",
+            )
+            command.extend(
+                [
+                    "--candidate-file",
+                    str(cand_file),
+                ]
+            )
+
+        if host:
+            command.extend(
+                [
+                    "--host",
+                    host,
+                ]
+            )
+
+        if test_id:
+            command.extend(
+                [
+                    "--test-id",
+                    test_id,
+                ]
+            )
+
+        completed = subprocess.run(
+            command,
+            cwd=PROJECT_4_ROOT,
+            text=True,
+            capture_output=False,
+            check=False,
+            env=environment,
+        )
+
+        if completed.returncode != 0:
+            raise RuntimeError(
+                "Project 4 batch validation failed "
+                f"with exit code {completed.returncode}."
+            )
+
+        if not temporary_output.is_file():
+            raise FileNotFoundError(
+                "Project 4 did not produce "
+                "project4_validation.json."
+            )
+
+        return workflow.register_project_4(
+            assessment_name,
+            temporary_output,
+        )
+
