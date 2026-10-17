@@ -35,6 +35,8 @@ def run_project_1(
     if not target:
         raise ValueError("Target must not be empty.")
 
+    PROJECT_1_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+
     command = [
         "scopeguard",
         "check",

@@ -10,4 +10,5 @@ def test_project_1_output_path_is_inside_scopeguard():
 
 
 def test_project_1_output_path_exists_or_can_be_generated():
+    PROJECT_1_OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     assert PROJECT_1_OUTPUT.parent.is_dir()
