@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
@@ -6,6 +6,7 @@ from .assessment_manager import AssessmentManager
 from hunt_chain_core.project_integration import (
     register_project_1,
     register_project_4,
+    register_project_5,
 )
 from hunt_chain_core.project_2_runner import register_project_2
 from hunt_chain_core.project_3_runner import register_project_3
@@ -16,6 +17,7 @@ PROJECT_RESULTS = {
     "project_2": "attack_surface.json",
     "project_3": "vulnerability_result.json",
     "project_4": "project4_validation.json",
+    "project_5": "report.json",
 }
 
 
@@ -126,6 +128,17 @@ class AssessmentWorkflow:
         result: str | Path,
     ) -> Path:
         return register_project_4(
+            assessment_name,
+            result,
+            self.runs_directory,
+        )
+
+    def register_project_5(
+        self,
+        assessment_name: str,
+        result: str | Path,
+    ) -> Path:
+        return register_project_5(
             assessment_name,
             result,
             self.runs_directory,

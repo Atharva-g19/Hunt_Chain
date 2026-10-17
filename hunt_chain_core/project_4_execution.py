@@ -122,7 +122,30 @@ def list_project4_candidates(
         )
 
         if endpoint is None:
-            continue
+            meta = (
+                result.get("metadata", {})
+                if isinstance(result.get("metadata"), dict)
+                else {}
+            )
+            url = (
+                meta.get("url")
+                or meta.get("target_url")
+                or meta.get("host")
+                or target.get("host")
+                or "https://target.local"
+            )
+            if not str(url).startswith(("http://", "https://")):
+                url = f"https://{url}"
+            endpoint = {
+                "endpoint_id": endpoint_id or "ep-fallback",
+                "target_id": (
+                    result.get("target_id")
+                    or target.get("target_id")
+                    or "target-default"
+                ),
+                "url": url,
+                "method": str(meta.get("method") or "GET").upper(),
+            }
 
         candidates.append(
             {

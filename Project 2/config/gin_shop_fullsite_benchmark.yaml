@@ -4,7 +4,7 @@ target:
 authorization:
   provider: scopeguard
   reference: GIN-JUICE-SHOP-WEB-001
-  scope_file: D:/Coding/z-Project/Hunt_Chain/Project 1/ScopeGuard/scopes/gin_shop.yaml
+  scope_file: Project 1/ScopeGuard/scopes/gin_shop.yaml
 execution:
   mode: active
 discovery:

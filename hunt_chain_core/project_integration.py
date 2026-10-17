@@ -12,6 +12,10 @@ PROJECTS = {
         "name": "Validation",
         "result_filename": "project4_validation.json",
     },
+    "project_5": {
+        "name": "Reporting",
+        "result_filename": "report.json",
+    },
 }
 
 
@@ -45,3 +49,20 @@ def register_project_4(
         source_file=source_file,
         result_filename=PROJECTS["project_4"]["result_filename"],
     )
+
+
+def register_project_5(
+    assessment_name: str,
+    source_file: str | Path,
+    runs_directory: str | Path = "Hunt_Chain_Runs",
+) -> Path:
+    manager = AssessmentManager(runs_directory)
+
+    return manager.add_project(
+        assessment_name,
+        project_id="project_5",
+        project_name=PROJECTS["project_5"]["name"],
+        source_file=source_file,
+        result_filename=PROJECTS["project_5"]["result_filename"],
+    )
+

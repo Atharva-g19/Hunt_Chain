@@ -1,4 +1,4 @@
-﻿"""ScopeGuard authorization adapter for Hunt_Chain Project 2.
+"""ScopeGuard authorization adapter for Hunt_Chain Project 2.
 
 The adapter provides the integration boundary between Project 2 and
 Project 1 (ScopeGuard).
@@ -88,6 +88,15 @@ class ScopeGuardAdapter(AuthorizationProvider):
             )
 
         scope_path = Path(authorization.scope_file)
+        if not scope_path.is_file():
+            # Fall back to resolving relative to repository root or current working directory
+            repo_root = Path(__file__).resolve().parents[4]
+            candidate_repo = (repo_root / scope_path).resolve()
+            candidate_cwd = (Path.cwd() / scope_path).resolve()
+            if candidate_repo.is_file():
+                scope_path = candidate_repo
+            elif candidate_cwd.is_file():
+                scope_path = candidate_cwd
 
         if not scope_path.exists():
             raise AuthorizationError(

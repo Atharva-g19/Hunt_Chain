@@ -1,4 +1,4 @@
-﻿discovery:
+discovery:
   providers:
     certificate_transparency:
       enabled: true

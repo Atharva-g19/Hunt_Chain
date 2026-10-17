@@ -17,5 +17,12 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
-pythonpath = ["src"]
-testpaths = ["tests"]
+pythonpath = [
+    ".",
+    "Project 1/ScopeGuard/src",
+    "Project 2/src",
+    "Project_3_Vulnerability/src",
+    "Project_4_Validation_Exploitation/src",
+    "Project_5_Reporting/src",
+]
+testpaths = ["tests", "tests_hunt_chain"]

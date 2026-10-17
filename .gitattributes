@@ -1,0 +1,41 @@
+# Enforce cross-platform LF line endings across the repository
+* text=auto eol=lf
+
+# Source code and configuration files
+*.py text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+
+# Documentation and text data
+*.md text eol=lf
+*.txt text eol=lf
+*.csv text eol=lf
+
+# Shell scripts
+*.sh text eol=lf
+
+# Windows command scripts (preserve CRLF for cmd.exe compatibility)
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary formats
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.zip binary
+*.tar.gz binary
+*.pyc binary
+*.pyd binary
+*.so binary
+*.dylib binary
+*.dll binary
+*.exe binary

@@ -4,7 +4,7 @@ target:
 authorization:
   provider: scopeguard
   reference: SCOPEGUARD_MY_TEST_SCOPE
-  scope_file: D:/Coding/z-Project/Hunt_Chain/Project 1/ScopeGuard/scopes/My_Test_Scope.yaml
+  scope_file: Project 1/ScopeGuard/scopes/My_Test_Scope.yaml
 execution:
   mode: active
 discovery:

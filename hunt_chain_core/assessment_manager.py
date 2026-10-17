@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
 import re
@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any
 
 
+from hunt_chain_core.paths import get_runs_directory, secure_mkdir
+
+
 class AssessmentManager:
     """Create and manage generic Hunt_Chain assessment workspaces."""
 
@@ -15,7 +18,11 @@ class AssessmentManager:
         self,
         runs_directory: str | Path = "Hunt_Chain_Runs",
     ) -> None:
-        self.runs_directory = Path(runs_directory)
+        self.runs_directory = (
+            get_runs_directory()
+            if runs_directory == "Hunt_Chain_Runs"
+            else Path(runs_directory)
+        )
 
     @staticmethod
     def _validate_name(name: str) -> str:
@@ -53,7 +60,7 @@ class AssessmentManager:
                 f"Assessment already exists: {name}"
             )
 
-        assessment_directory.mkdir(parents=True)
+        secure_mkdir(assessment_directory)
 
         manifest: dict[str, Any] = {
             "schema_version": "v1",
@@ -133,7 +140,8 @@ class AssessmentManager:
 
         destination = assessment_directory / result_filename
 
-        shutil.copy2(source, destination)
+        if source.resolve() != destination.resolve():
+            shutil.copy2(source, destination)
 
         manifest = self._read_manifest(
             assessment_directory

@@ -6,7 +6,7 @@ import urllib.error
 import urllib.request
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import parse_qs, urljoin, urlparse, urlunparse
+from urllib.parse import parse_qs, parse_qsl, urljoin, urlparse, urlsplit, urlunparse
 
 from hunt_chain_recon.providers.base import (
     ProviderError,
@@ -144,6 +144,10 @@ class WebDiscoveryProvider(DiscoveryProvider):
         "/api/graphql",
         "/v1/graphql",
         "/v2/graphql",
+        "/accountDetails",
+        "/api/accountDetails",
+        "/api/account",
+        "/account/details",
     )
 
     JS_PATTERNS = (
@@ -353,6 +357,30 @@ class WebDiscoveryProvider(DiscoveryProvider):
                         seed,
                         normalized,
                     ):
+                        if "redirect_uri=" in normalized.lower():
+                            try:
+                                parsed_norm = urlsplit(normalized)
+                                for qk, qv in parse_qsl(parsed_norm.query):
+                                    if qk.lower() == "redirect_uri":
+                                        redirect_target = self._normalize_url(current_url, qv)
+                                        if redirect_target and self._allowed_candidate(seed, redirect_target):
+                                            observations.append(
+                                                self._make_observation(
+                                                    url=redirect_target,
+                                                    source=f"{source}:oauth_redirect_uri",
+                                                    parent_url=current_url,
+                                                    method="GET",
+                                                )
+                                            )
+                                            if (
+                                                redirect_target not in visited
+                                                and redirect_target not in queued
+                                                and self._crawlable(redirect_target)
+                                            ):
+                                                queue.append(redirect_target)
+                                                queued.add(redirect_target)
+                            except Exception:
+                                pass
                         continue
 
                     observations.append(
@@ -935,7 +963,7 @@ class WebDiscoveryProvider(DiscoveryProvider):
                 "",
             ).lower()
 
-            if status < 400:
+            if status < 400 or status in (401, 403):
                 source = (
                     "graphql:path"
                     if path.endswith("/graphql")

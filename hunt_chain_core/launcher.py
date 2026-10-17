@@ -1,20 +1,64 @@
 from __future__ import annotations
 
+import argparse
+import json
 from pathlib import Path
+import sys
+
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+if hasattr(sys.stderr, "reconfigure"):
+    try:
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
+from rich.box import ROUNDED, SIMPLE
+from rich.table import Table
+from rich.text import Text
 
 from hunt_chain_core import AssessmentManager
 from hunt_chain_core.project_1_runner import run_project_1
 from hunt_chain_core.project_2_ui import _run_project_2
-from hunt_chain_core.project_3_ui import _run_project_3
+from hunt_chain_core.project_3_execution import run_project_3
+from hunt_chain_core.project_3_ui import _resolve_categories, _run_project_3
+from hunt_chain_core.project_4_execution import (
+    list_project4_candidates,
+    run_project_4_batch_validation,
+)
 from hunt_chain_core.project_4_ui import _run_project_4
+from hunt_chain_core.project_5_execution import run_project_5
+from hunt_chain_core.project_5_ui import _run_project_5
 from hunt_chain_core.scope_manager import ScopeManager
-
+from hunt_chain_core.ui_styling import (
+    GLYPH_ARROW,
+    GLYPH_FAIL,
+    GLYPH_INFO,
+    GLYPH_PROMPT,
+    GLYPH_SUCCESS,
+    GLYPH_WARN,
+    console,
+    format_severity,
+    format_stage_status,
+    print_banner,
+    render_assessment_dashboard,
+)
 
 BANNER = r"""
 ╔══════════════════════════════════════════════════════╗
 ║                  H U N T _ C H A I N                 ║
 ║              Authorized Security Toolkit             ║
 ╚══════════════════════════════════════════════════════╝
+"""
+
+ASCII_BANNER = r"""
++------------------------------------------------------+
+|                  H U N T _ C H A I N                 |
+|              Authorized Security Toolkit             |
++------------------------------------------------------+
 """
 
 PROJECTS = {
@@ -27,141 +71,140 @@ PROJECTS = {
 
 
 def _pause() -> None:
-    input("\nPress Enter to continue...")
+    try:
+        input("\nPress Enter to continue...")
+    except (EOFError, KeyboardInterrupt):
+        pass
 
 
 def _print_main_menu() -> None:
-    print("\n" + "=" * 54)
-    print("Hunt_Chain")
-    print("=" * 54)
-    print("  1. New Assessment")
-    print("  2. Open Assessment")
-    print("  3. List Assessments")
-    print("  4. Assessment Details")
-    print("  0. Exit")
-    print("=" * 54)
+    menu_table = Table(
+        box=ROUNDED,
+        border_style="cyan",
+        show_header=False,
+        padding=(0, 2),
+    )
+    menu_table.add_column("Option", style="bold yellow", width=6, justify="right")
+    menu_table.add_column("Action", style="bold white", width=24)
+    menu_table.add_column("Description", style="dim white")
+
+    menu_table.add_row("[1]", "New Assessment", "Initialize a target scope & assessment run")
+    menu_table.add_row("[2]", "Open Assessment", "Launch security pipeline for an existing project")
+    menu_table.add_row("[3]", "List Assessments", "Show all registered assessments and their pipeline status")
+    menu_table.add_row("[4]", "Assessment Details", "Executive dashboard & artifact inspection")
+    menu_table.add_row("[0]", "Exit", "Exit Hunt_Chain framework")
+
+    console.print("\n[bold cyan]Hunt_Chain Navigation Console[/bold cyan]")
+    console.print(menu_table)
 
 
 def _print_assessment_header(
     manager: AssessmentManager,
     name: str,
 ) -> None:
-    try:
-        manifest = manager.manifest(name)
-    except Exception:
-        manifest = {}
+    render_assessment_dashboard(manager, name)
 
-    projects = manifest.get("projects", {})
-
-    def stage_status(project_id: str) -> str:
-        project = projects.get(project_id)
-
-        if not project:
-            return "NOT RUN"
-
-        return str(
-            project.get("status", "UNKNOWN")
-        ).upper()
-
-    authorization_status = "NOT RUN"
-
-    if "project_1" in projects:
-        try:
-            result_path = (
-                manager.get(name)
-                / "authorization_result.json"
-            )
-
-            if result_path.is_file():
-                import json
-
-                with result_path.open(
-                    "r",
-                    encoding="utf-8-sig",
-                ) as handle:
-                    authorization = json.load(handle)
-
-                authorization_status = str(
-                    authorization.get(
-                        "state",
-                        "UNKNOWN",
-                    )
-                ).upper()
-        except (OSError, ValueError, TypeError):
-            authorization_status = "UNKNOWN"
-
-    print("\n" + "=" * 60)
-    print(f"Assessment: {name}")
-    print("=" * 60)
-
-    print(
-        f"  Authorization : {authorization_status}"
+    menu_table = Table(
+        box=ROUNDED,
+        border_style="green",
+        show_header=False,
+        padding=(0, 2),
     )
-    print(
-        f"  Recon         : {stage_status('project_2')}"
-    )
-    print(
-        f"  Security Test : {stage_status('project_3')}"
-    )
-    print(
-        f"  Validation    : {stage_status('project_4')}"
-    )
+    menu_table.add_column("Option", style="bold yellow", width=6, justify="right")
+    menu_table.add_column("Pipeline Stage", style="bold white", width=28)
+    menu_table.add_column("Purpose", style="dim white")
 
-    print()
-    print("  1. Scope")
-    print("  2. Reconnaissance")
-    print("  3. Security Testing")
-    print("  4. Validation")
-    print("  5. Reporting")
-    print("  0. Back")
-    print("=" * 60)
+    menu_table.add_row("[1]", "ScopeGuard Authorization", "Define targets, IP/domain rules, and verify authorization")
+    menu_table.add_row("[2]", "Reconnaissance (Recon)", "Map endpoints, parameters, technologies & attack surface")
+    menu_table.add_row("[3]", "Vulnerability Testing", "Execute 168 checks across 22 vulnerability families")
+    menu_table.add_row("[4]", "Validation & Exploitation", "Confirm live exploitability with safety-guaranteed PoCs")
+    menu_table.add_row("[5]", "Reporting", "Generate executive audit & compliance reports")
+    menu_table.add_row("[0]", "Back", "Return to Main Menu")
+
+    console.print("[bold green]Available Pipeline Actions[/bold green]")
+    console.print(menu_table)
+
 
 def _create_assessment(
     manager: AssessmentManager,
 ) -> None:
-    print("\n" + "=" * 54)
-    print("New Assessment")
-    print("=" * 54)
-
-    name = input("Assessment name: ").strip()
+    console.print(f"\n[bold cyan]✦ CREATE NEW ASSESSMENT ✦[/bold cyan]")
+    try:
+        name = input("Enter assessment name [e.g. audit_2026]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return
 
     if not name:
-        print("Assessment name is required.")
+        console.print(f"{GLYPH_FAIL} [red]Assessment name is required.[/red]")
         return
 
     try:
         manager.create(name)
     except (ValueError, FileExistsError) as exc:
-        print(f"\nCannot create assessment: {exc}")
+        console.print(f"\n{GLYPH_FAIL} [red]Cannot create assessment: {exc}[/red]")
         return
 
-    print(f"\nAssessment '{name}' created.")
+    console.print(f"\n{GLYPH_SUCCESS} [bold green]Assessment '{name}' created successfully.[/bold green]")
     _open_assessment(manager, name)
 
 
 def _list_assessments(
     manager: AssessmentManager,
 ) -> None:
-    print("\n" + "=" * 54)
-    print("Assessments")
-    print("=" * 54)
-
     assessments = manager.list_assessments()
 
     if not assessments:
-        print("No assessments found.")
+        console.print(f"\n{GLYPH_WARN} [yellow]No assessments found. Create one with Option 1.[/yellow]\n")
         return
 
+    table = Table(
+        title="[bold cyan]Hunt_Chain Registered Assessments[/bold cyan]",
+        box=ROUNDED,
+        border_style="cyan",
+        header_style="bold cyan",
+        padding=(0, 1),
+    )
+    table.add_column("#", style="bold yellow", justify="right")
+    table.add_column("Assessment Name", style="bold white")
+    table.add_column("Status")
+    table.add_column("Target URL / Host", style="bold cyan")
+    table.add_column("Created At", style="dim white")
+
+    runs_dir = getattr(manager, "runs_directory", Path("Hunt_Chain_Runs"))
     for index, name in enumerate(assessments, start=1):
         try:
             manifest = manager.manifest(name)
-            status = manifest.get("status", "UNKNOWN")
+            status = manifest.get("status", "ACTIVE")
+            created_at = manifest.get("created_at", "—")
         except Exception:
             status = "UNKNOWN"
+            created_at = "—"
 
-        print(f"  {index}. {name} [{status}]")
+        target_str = "Target not specified"
+        p1_path = runs_dir / name / "authorization_result.json"
+        if p1_path.is_file():
+            try:
+                with p1_path.open("r", encoding="utf-8-sig") as h:
+                    p1_data = json.load(h)
+                t = p1_data.get("target", {})
+                if isinstance(t, dict):
+                    target_str = (
+                        t.get("raw_value")
+                        or t.get("normalized_value")
+                        or t.get("url")
+                        or t.get("host")
+                        or target_str
+                    )
+                elif isinstance(t, str) and t:
+                    target_str = t
+                elif p1_data.get("target_url"):
+                    target_str = p1_data["target_url"]
+            except Exception:
+                pass
 
-    print("\n  0. Back")
+        table.add_row(str(index), name, format_stage_status(status), target_str, created_at)
+
+    console.print(table)
 
 
 def _show_assessment_details(
@@ -170,76 +213,39 @@ def _show_assessment_details(
     assessments = manager.list_assessments()
 
     if not assessments:
-        print("\nNo assessments found.")
+        console.print(f"\n{GLYPH_WARN} [yellow]No assessments found.[/yellow]")
         return
 
-    print("\n" + "=" * 54)
-    print("Assessment Details")
-    print("=" * 54)
+    _list_assessments(manager)
+    try:
+        choice = input("\nEnter assessment number to inspect dashboard [or 'all', 0=Back]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        return
 
-    for index, name in enumerate(assessments, start=1):
-        try:
-            manifest = manager.manifest(name)
-        except Exception:
-            continue
+    if choice in ("0", "back", ""):
+        return
 
-        projects = manifest.get("projects", {})
+    if choice == "all":
+        for name in assessments:
+            render_assessment_dashboard(manager, name)
+        _pause()
+        return
 
-        print()
-        print(f"{index}. {name}")
-        print(
-            f"   Status : "
-            f"{manifest.get('status', 'UNKNOWN')}"
-        )
-        print(
-            f"   Created: "
-            f"{manifest.get('created_at', 'UNKNOWN')}"
-        )
+    if choice.isdigit():
+        idx = int(choice)
+        if 1 <= idx <= len(assessments):
+            render_assessment_dashboard(manager, assessments[idx - 1])
+            _pause()
+            return
 
-        authorization = "NOT RUN"
+    for name in assessments:
+        if name.lower() == choice:
+            render_assessment_dashboard(manager, name)
+            _pause()
+            return
 
-        try:
-            result_path = (
-                manager.get(name)
-                / "authorization_result.json"
-            )
+    console.print(f"{GLYPH_FAIL} [red]Invalid assessment selection.[/red]")
 
-            if result_path.is_file():
-                import json
-
-                with result_path.open(
-                    "r",
-                    encoding="utf-8-sig",
-                ) as handle:
-                    result = json.load(handle)
-
-                authorization = str(
-                    result.get(
-                        "state",
-                        "UNKNOWN",
-                    )
-                ).upper()
-        except (
-            OSError,
-            ValueError,
-            TypeError,
-        ):
-            authorization = "UNKNOWN"
-
-        print(
-            f"   ScopeGuard      : {authorization}"
-        )
-        print(
-            f"   Reconnaissance  : "
-            f"{'COMPLETED' if 'project_2' in projects else 'NOT RUN'}"
-        )
-        print(
-            f"   Security Testing: "
-            f"{'COMPLETED' if 'project_3' in projects else 'NOT RUN'}"
-        )
-
-    print("\n" + "=" * 54)
-    _pause()
 
 def _choose_assessment(
     manager: AssessmentManager,
@@ -247,58 +253,54 @@ def _choose_assessment(
     assessments = manager.list_assessments()
 
     if not assessments:
-        print("\nNo assessments found.")
+        console.print(f"\n{GLYPH_WARN} [yellow]No assessments found. Create one first.[/yellow]")
         return None
 
-    print("\n" + "=" * 54)
-    print("Open Assessment")
-    print("=" * 54)
-
-    for index, name in enumerate(assessments, start=1):
-        try:
-            manifest = manager.manifest(name)
-            status = manifest.get("status", "UNKNOWN")
-        except Exception:
-            status = "UNKNOWN"
-
-        print(f"  {index}. {name} [{status}]")
-
-    print("  0. Back")
-    print("=" * 54)
-
-    choice = input("Select assessment: ").strip()
-
-    if choice == "0":
-        return None
-
+    _list_assessments(manager)
     try:
+        choice = input("\nSelect assessment number or name [0=Back]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return None
+
+    if choice in ("0", "back", ""):
+        return None
+
+    if choice.isdigit():
         index = int(choice)
-    except ValueError:
-        print("Invalid selection.")
+        if 1 <= index <= len(assessments):
+            return assessments[index - 1]
+        console.print(f"{GLYPH_FAIL} [red]Invalid selection: {index}[/red]")
         return None
 
-    if not 1 <= index <= len(assessments):
-        print("Invalid selection.")
-        return None
+    if choice in assessments:
+        return choice
 
-    return assessments[index - 1]
+    console.print(f"{GLYPH_FAIL} [red]Assessment '{choice}' not found.[/red]")
+    return None
 
 
 def _scope_menu(
     scope_manager: ScopeManager,
 ) -> Path | None:
     while True:
-        print("\n" + "=" * 54)
-        print("ScopeGuard")
-        print("=" * 54)
-        print("  1. Create New Scope")
-        print("  2. Edit Existing Scope")
-        print("  0. Back")
-        print("=" * 54)
+        table = Table(box=ROUNDED, border_style="cyan", show_header=False, padding=(0, 2))
+        table.add_column("Option", style="bold yellow", width=6, justify="right")
+        table.add_column("Action", style="bold white", width=24)
+        table.add_column("Description", style="dim white")
 
-        choice = input("ScopeGuard> ").strip()
+        table.add_row("[1]", "Create New Scope", "Define new authorized target IP/domain rules")
+        table.add_row("[2]", "Edit Existing Scope", "Inspect or modify scope YAML rules in editor")
+        table.add_row("[0]", "Back", "Return to assessment menu")
 
-        if choice == "0":
+        console.print("\n[bold cyan]ScopeGuard Scope Management[/bold cyan]")
+        console.print(table)
+
+        try:
+            choice = input("ScopeGuard> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return None
+
+        if choice in ("0", "back"):
             return None
 
         if choice == "1":
@@ -307,36 +309,42 @@ def _scope_menu(
         if choice == "2":
             return _edit_scope(scope_manager)
 
-        print("Invalid selection.")
+        console.print(f"{GLYPH_FAIL} [red]Invalid selection.[/red]")
 
 
 def _create_scope(
     scope_manager: ScopeManager,
 ) -> Path | None:
-    print("\nCreate New Scope")
-    print("-" * 54)
+    console.print(f"\n[bold cyan]Create New Scope[/bold cyan]")
+    try:
+        name = input("Scope name: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return None
 
-    name = input("Scope name: ").strip()
+    if not name:
+        console.print(f"{GLYPH_FAIL} [red]Scope name is required.[/red]")
+        return None
 
     try:
         path = scope_manager.create(name)
     except (ValueError, FileExistsError) as exc:
-        print(f"\nCannot create scope: {exc}")
+        console.print(f"\n{GLYPH_FAIL} [red]Cannot create scope: {exc}[/red]")
         return None
 
-    print(f"\nScope '{name}' created.")
-    print("Opening scope definition...")
+    console.print(f"\n{GLYPH_SUCCESS} [bold green]Scope '{name}' created.[/bold green]")
+    console.print(f"{GLYPH_INFO} Opening scope definition...")
 
     try:
         scope_manager.open_in_editor(name)
     except (FileNotFoundError, OSError) as exc:
-        print(f"Could not open editor: {exc}")
-        print(f"Scope created successfully: {path}")
+        console.print(f"{GLYPH_WARN} [yellow]Could not open editor: {exc}[/yellow]")
+        console.print(f"Scope created successfully: {path}")
         return path
 
-    input(
-        "\nEdit and save the YAML, then press Enter to continue..."
-    )
+    try:
+        input("\nEdit and save the YAML, then press Enter to continue...")
+    except (EOFError, KeyboardInterrupt):
+        pass
 
     return path
 
@@ -347,30 +355,40 @@ def _edit_scope(
     scopes = scope_manager.list_scopes()
 
     if not scopes:
-        print("\nNo scopes available.")
+        console.print(f"\n{GLYPH_WARN} [yellow]No scopes available.[/yellow]")
         return None
 
-    print("\nAvailable Scopes")
-    print("-" * 54)
+    table = Table(
+        title="[bold cyan]Available Scopes[/bold cyan]",
+        box=ROUNDED,
+        border_style="cyan",
+        header_style="bold cyan",
+        padding=(0, 1),
+    )
+    table.add_column("#", style="bold yellow", width=4, justify="right")
+    table.add_column("Scope Name", style="bold white", width=30)
 
     for index, name in enumerate(scopes, start=1):
-        print(f"  {index}. {name}")
+        table.add_row(str(index), name)
 
-    print("  0. Back")
+    console.print(table)
 
-    choice = input("Select scope: ").strip()
+    try:
+        choice = input("Select scope [0=Back]: ").strip()
+    except (EOFError, KeyboardInterrupt):
+        return None
 
-    if choice == "0":
+    if choice in ("0", "back", ""):
         return None
 
     try:
         index = int(choice)
     except ValueError:
-        print("Invalid selection.")
+        console.print(f"{GLYPH_FAIL} [red]Invalid selection.[/red]")
         return None
 
     if not 1 <= index <= len(scopes):
-        print("Invalid selection.")
+        console.print(f"{GLYPH_FAIL} [red]Invalid selection.[/red]")
         return None
 
     name = scopes[index - 1]
@@ -378,12 +396,13 @@ def _edit_scope(
     try:
         scope_manager.open_in_editor(name)
     except (FileNotFoundError, OSError) as exc:
-        print(f"Could not open scope editor: {exc}")
+        console.print(f"{GLYPH_WARN} [yellow]Could not open scope editor: {exc}[/yellow]")
         return None
 
-    input(
-        "\nEdit and save the YAML, then press Enter to continue..."
-    )
+    try:
+        input("\nEdit and save the YAML, then press Enter to continue...")
+    except (EOFError, KeyboardInterrupt):
+        pass
 
     return scope_manager.path_for(name)
 
@@ -392,15 +411,10 @@ def _run_project_1(
     manager: AssessmentManager,
     assessment_name: str,
 ) -> None:
-    print("\n" + "=" * 54)
-    print("ScopeGuard")
-    print("=" * 54)
-
+    console.print(f"\n[bold cyan]✦ STAGE 1: SCOPEGUARD AUTHORIZATION ✦[/bold cyan]")
     scope_manager = ScopeManager()
 
-    # Select an existing scope or create/edit one.
     scope_path = _scope_menu(scope_manager)
-
     if scope_path is None:
         return
 
@@ -408,78 +422,73 @@ def _run_project_1(
 
     try:
         targets = scope_manager.included_targets(scope_name)
-    except (
-        FileNotFoundError,
-        ValueError,
-        OSError,
-    ) as exc:
-        print(f"\nCould not load scope: {exc}")
+    except (FileNotFoundError, ValueError, OSError) as exc:
+        console.print(f"\n{GLYPH_FAIL} [red]Could not load scope: {exc}[/red]")
         return
 
     if not targets:
-        print("\nThe selected scope contains no included assets.")
-        print("Add at least one include rule before running ScopeGuard.")
+        console.print(f"\n{GLYPH_WARN} [yellow]The selected scope contains no included assets.[/yellow]")
+        console.print("Add at least one include rule before running ScopeGuard.")
         return
 
-    print("\nAuthorized Scope Assets")
-    print("-" * 54)
+    table = Table(
+        title="[bold cyan]Authorized Scope Assets[/bold cyan]",
+        box=ROUNDED,
+        border_style="cyan",
+        header_style="bold cyan",
+        padding=(0, 1),
+    )
+    table.add_column("#", style="bold yellow", width=4, justify="right")
+    table.add_column("Asset Type", style="bold cyan", width=14)
+    table.add_column("Target Value / Pattern", style="bold white")
 
     for index, item in enumerate(targets, start=1):
-        print(
-            f"  {index}. "
-            f"[{item['type']}] "
-            f"{item['value']}"
-        )
+        table.add_row(str(index), f"[{item['type'].upper()}]", item["value"])
 
-    print("  0. Back")
+    console.print(table)
 
     if len(targets) == 1:
         selected = targets[0]
-
-        print(
-            "\nSelected target:"
-            f"\n  {selected['value']}"
-        )
+        console.print(f"\n{GLYPH_INFO} Auto-selected target: [bold white]{selected['value']}[/bold white]")
     else:
-        choice = input(
-            "\nSelect target: "
-        ).strip()
+        try:
+            choice = input("\nSelect target [0=Back]: ").strip()
+        except (EOFError, KeyboardInterrupt):
+            return
 
-        if choice == "0":
+        if choice in ("0", "back", ""):
             return
 
         try:
             index = int(choice)
         except ValueError:
-            print("Invalid selection.")
+            console.print(f"{GLYPH_FAIL} [red]Invalid selection.[/red]")
             return
 
         if not 1 <= index <= len(targets):
-            print("Invalid selection.")
+            console.print(f"{GLYPH_FAIL} [red]Invalid selection.[/red]")
             return
 
         selected = targets[index - 1]
 
     target = selected["value"].strip()
-
     if not target:
-        print("Selected scope asset has an empty target.")
+        console.print(f"{GLYPH_FAIL} [red]Selected scope asset has an empty target.[/red]")
         return
 
-    print("\n" + "-" * 54)
-    print(f"Scope : {scope_name}")
-    print(f"Target: {target}")
-    print("-" * 54)
+    console.print(f"\n[bold cyan]Scope :[/bold cyan] {scope_name}")
+    console.print(f"[bold cyan]Target:[/bold cyan] {target}\n")
 
-    confirm = input(
-        "Run ScopeGuard against this target? [y/N]: "
-    ).strip().lower()
+    try:
+        confirm = input("Run ScopeGuard against this target? [y/N]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        return
 
     if confirm != "y":
-        print("ScopeGuard cancelled.")
+        console.print(f"{GLYPH_WARN} [yellow]ScopeGuard cancelled.[/yellow]")
         return
 
-    print("\nRunning ScopeGuard...")
+    console.print(f"\n{GLYPH_INFO} Running ScopeGuard policy evaluation...")
 
     try:
         run_project_1(
@@ -488,60 +497,40 @@ def _run_project_1(
             target,
             manager.runs_directory,
         )
-    except (
-        FileNotFoundError,
-        ValueError,
-        RuntimeError,
-        OSError,
-        PermissionError,
-    ) as exc:
-        print(f"\nScopeGuard failed: {exc}")
+    except (FileNotFoundError, ValueError, RuntimeError, OSError, PermissionError) as exc:
+        console.print(f"\n{GLYPH_FAIL} [red]ScopeGuard failed: {exc}[/red]")
         return
 
-    print("\nScopeGuard completed.")
-    print("Authorization result registered in the assessment history.")
+    console.print(f"\n{GLYPH_SUCCESS} [bold green]ScopeGuard completed successfully.[/bold green]")
+    console.print(f"{GLYPH_INFO} Authorization result registered in assessment history.")
+
+
 def _run_project_2_safe(
     manager: AssessmentManager,
     assessment_name: str,
 ) -> None:
-    print("\n" + "=" * 54)
-    print("Reconnaissance")
-    print("=" * 54)
-
+    console.print(f"\n[bold cyan]✦ STAGE 2: ATTACK SURFACE RECONNAISSANCE ✦[/bold cyan]")
     try:
         _run_project_2(manager, assessment_name)
-    except (
-        FileNotFoundError,
-        ValueError,
-        RuntimeError,
-        OSError,
-    ) as exc:
-        print(f"\nReconnaissance failed: {exc}")
+    except (FileNotFoundError, ValueError, RuntimeError, OSError) as exc:
+        console.print(f"\n{GLYPH_FAIL} [red]Reconnaissance failed: {exc}[/red]")
         return
 
-    print("\nReconnaissance stage finished.")
+    console.print(f"\n{GLYPH_SUCCESS} [bold green]Reconnaissance stage finished.[/bold green]")
 
 
 def _run_project_3_safe(
     manager: AssessmentManager,
     assessment_name: str,
 ) -> None:
-    print("\n" + "=" * 54)
-    print("Vulnerability Testing")
-    print("=" * 54)
-
+    console.print(f"\n[bold cyan]✦ STAGE 3: VULNERABILITY TESTING ✦[/bold cyan]")
     try:
         _run_project_3(manager, assessment_name)
-    except (
-        FileNotFoundError,
-        ValueError,
-        RuntimeError,
-        OSError,
-    ) as exc:
-        print(f"\nVulnerability Testing failed: {exc}")
+    except (FileNotFoundError, ValueError, RuntimeError, OSError) as exc:
+        console.print(f"\n{GLYPH_FAIL} [red]Vulnerability Testing failed: {exc}[/red]")
         return
 
-    print("\nVulnerability Testing stage finished.")
+    console.print(f"\n{GLYPH_SUCCESS} [bold green]Vulnerability Testing stage finished.[/bold green]")
 
 
 def _authorization_state(
@@ -553,30 +542,17 @@ def _authorization_state(
             manager.get(assessment_name)
             / "authorization_result.json"
         )
-
         if not result_path.is_file():
             return None
 
-        import json
-
-        with result_path.open(
-            "r",
-            encoding="utf-8-sig",
-        ) as handle:
+        with result_path.open("r", encoding="utf-8-sig") as handle:
             result = json.load(handle)
 
         state = result.get("state")
-
         if state is None:
             return None
-
         return str(state).upper()
-
-    except (
-        OSError,
-        ValueError,
-        TypeError,
-    ):
+    except (OSError, ValueError, TypeError):
         return None
 
 
@@ -589,24 +565,15 @@ def _project_available(
         manifest = manager.manifest(assessment_name)
     except Exception:
         return False
-
-    return project_id in manifest.get(
-        "projects",
-        {},
-    )
+    return project_id in manifest.get("projects", {})
 
 
 def _authorization_allows_testing(
     manager: AssessmentManager,
     assessment_name: str,
 ) -> bool:
-    return (
-        _authorization_state(
-            manager,
-            assessment_name,
-        )
-        == "IN_SCOPE"
-    )
+    return _authorization_state(manager, assessment_name) == "IN_SCOPE"
+
 
 def _open_assessment(
     manager: AssessmentManager,
@@ -614,14 +581,18 @@ def _open_assessment(
 ) -> None:
     while True:
         if not manager.exists(name):
-            print(f"\nAssessment does not exist: {name}")
+            console.print(f"\n{GLYPH_FAIL} [red]Assessment does not exist: {name}[/red]")
             return
 
         _print_assessment_header(manager, name)
 
-        choice = input(f"{name}> ").strip()
+        try:
+            choice = input(f"{name}> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            print()
+            return
 
-        if choice == "0":
+        if choice in ("0", "back"):
             return
 
         if choice == "1":
@@ -629,141 +600,218 @@ def _open_assessment(
             continue
 
         if choice == "2":
-            if not _project_available(
-                manager,
-                name,
-                "project_1",
-            ):
-                print(
-                    "\nCannot run Reconnaissance."
-                    "\nRun ScopeGuard first."
-                )
+            if not _project_available(manager, name, "project_1"):
+                console.print(f"\n{GLYPH_WARN} [yellow]Cannot run Reconnaissance. Run ScopeGuard (Stage 1) first.[/yellow]")
                 continue
 
-            if not _authorization_allows_testing(
-                manager,
-                name,
-            ):
-                state = _authorization_state(
-                    manager,
-                    name,
-                )
-
-                print(
-                    "\nCannot run Reconnaissance."
-                )
-                print(
-                    "ScopeGuard authorization is not IN_SCOPE."
-                )
-                print(
-                    f"Current authorization state: {state or 'UNKNOWN'}"
-                )
+            if not _authorization_allows_testing(manager, name):
+                state = _authorization_state(manager, name)
+                console.print(f"\n{GLYPH_FAIL} [red]Cannot run Reconnaissance: ScopeGuard authorization is not IN_SCOPE.[/red]")
+                console.print(f"Current authorization state: {state or 'UNKNOWN'}")
                 continue
 
             _run_project_2_safe(manager, name)
             continue
 
         if choice == "3":
-            if not _project_available(
-                manager,
-                name,
-                "project_1",
-            ):
-                print(
-                    "\nCannot run Vulnerability Testing."
-                    "\nRun ScopeGuard first."
-                )
+            if not _project_available(manager, name, "project_1"):
+                console.print(f"\n{GLYPH_WARN} [yellow]Cannot run Vulnerability Testing. Run ScopeGuard (Stage 1) first.[/yellow]")
                 continue
 
-            if not _project_available(
-                manager,
-                name,
-                "project_2",
-            ):
-                print(
-                    "\nCannot run Vulnerability Testing."
-                    "\nRun Reconnaissance first."
-                )
+            if not _project_available(manager, name, "project_2"):
+                console.print(f"\n{GLYPH_WARN} [yellow]Cannot run Vulnerability Testing. Run Reconnaissance (Stage 2) first.[/yellow]")
                 continue
 
             _run_project_3_safe(manager, name)
             continue
 
         if choice == "4":
-            if not _project_available(
-                manager,
-                name,
-                "project_1",
-            ):
-                print(
-                    "\nCannot run Validation."
-                    "\nRun ScopeGuard first."
-                )
+            if not _project_available(manager, name, "project_1"):
+                console.print(f"\n{GLYPH_WARN} [yellow]Cannot run Validation. Run ScopeGuard (Stage 1) first.[/yellow]")
                 continue
 
-            if not _authorization_allows_testing(
-                manager,
-                name,
-            ):
-                state = _authorization_state(
-                    manager,
-                    name,
-                )
-
-                print(
-                    "\nCannot run Validation."
-                )
-                print(
-                    "ScopeGuard authorization is not IN_SCOPE."
-                )
-                print(
-                    f"Current authorization state: "
-                    f"{state or 'UNKNOWN'}"
-                )
+            if not _authorization_allows_testing(manager, name):
+                state = _authorization_state(manager, name)
+                console.print(f"\n{GLYPH_FAIL} [red]Cannot run Validation: ScopeGuard authorization is not IN_SCOPE.[/red]")
+                console.print(f"Current authorization state: {state or 'UNKNOWN'}")
                 continue
 
-            if not _project_available(
-                manager,
-                name,
-                "project_3",
-            ):
-                print(
-                    "\nCannot run Validation."
-                    "\nRun Vulnerability Testing first."
-                )
+            if not _project_available(manager, name, "project_3"):
+                console.print(f"\n{GLYPH_WARN} [yellow]Cannot run Validation. Run Vulnerability Testing (Stage 3) first.[/yellow]")
                 continue
 
             _run_project_4(manager, name)
             continue
 
         if choice == "5":
-            print(
-                "\nReporting is not available yet."
-                "\nThe toolkit will not perform a fake execution."
-            )
+            if not _project_available(manager, name, "project_1"):
+                console.print(f"\n{GLYPH_WARN} [yellow]Cannot run Reporting. Run ScopeGuard (Stage 1) first.[/yellow]")
+                continue
+
+            if not _authorization_allows_testing(manager, name):
+                state = _authorization_state(manager, name)
+                console.print(f"\n{GLYPH_FAIL} [red]Cannot run Reporting: ScopeGuard authorization is not IN_SCOPE.[/red]")
+                console.print(f"Current authorization state: {state or 'UNKNOWN'}")
+                continue
+
+            _run_project_5(manager, name)
             continue
 
-        print("\nInvalid selection.")
+        console.print(f"\n{GLYPH_FAIL} [red]Invalid selection.[/red]")
 
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        try:
+            sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+            sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+        except Exception:
+            pass
+
+    parser = argparse.ArgumentParser(
+        prog="hunt-chain",
+        description="Hunt_Chain — Professional Authorized Security Testing Framework",
+        add_help=True,
+    )
+    parser.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="List all registered assessments and their pipeline status",
+    )
+    parser.add_argument(
+        "-a",
+        "--assessment",
+        type=str,
+        default=None,
+        help="Target assessment name for headless execution or inspection",
+    )
+    parser.add_argument(
+        "-s",
+        "--summary",
+        action="store_true",
+        help="Display the executive dashboard and vulnerability overview for an assessment",
+    )
+    parser.add_argument(
+        "--run-p3",
+        action="store_true",
+        help="Run Project 3 (Vulnerability Testing) non-interactively on the target assessment",
+    )
+    parser.add_argument(
+        "--category",
+        type=str,
+        default=None,
+        help="Category or test ID filter for --run-p3 (e.g. SQLI, XSS, ATO, or 'all')",
+    )
+    parser.add_argument(
+        "--run-p4",
+        action="store_true",
+        help="Run Project 4 (Validation) batch verification non-interactively on the target assessment",
+    )
+    parser.add_argument(
+        "--report",
+        "--run-p5",
+        dest="run_p5",
+        action="store_true",
+        help="Generate Project 5 submission-ready reports (report.md & report.json) for the target assessment",
+    )
+
+    args = parser.parse_args(argv)
     manager = AssessmentManager()
 
-    print(BANNER)
-    print("Authorized Security Testing Toolkit")
-    print("Assessment → Scope → Recon → Testing → Validation → Reporting")
+    # Headless CLI flags
+    if args.list:
+        _list_assessments(manager)
+        return
+
+    if args.summary:
+        target_name = args.assessment
+        if not target_name:
+            assessments = manager.list_assessments()
+            if not assessments:
+                console.print(f"{GLYPH_WARN} [yellow]No assessments found.[/yellow]")
+                return
+            target_name = assessments[0]
+        render_assessment_dashboard(manager, target_name)
+        return
+
+    if args.run_p3:
+        target_name = args.assessment
+        if not target_name:
+            assessments = manager.list_assessments()
+            if not assessments:
+                console.print(f"{GLYPH_WARN} [yellow]No assessments found.[/yellow]")
+                return
+            target_name = assessments[0]
+
+        test_ids: list[str] | None = None
+        if args.category:
+            resolved_ids, _ = _resolve_categories(args.category)
+            test_ids = resolved_ids
+
+        console.print(f"\n{GLYPH_INFO} Running Project 3 headlessly on assessment [bold cyan]{target_name}[/bold cyan]...")
+        run_project_3(
+            target_name,
+            runs_directory=Path(manager.runs_directory).resolve(),
+            test_ids=test_ids,
+        )
+        console.print(f"\n{GLYPH_SUCCESS} Headless Project 3 run completed.")
+        return
+
+    if args.run_p4:
+        target_name = args.assessment
+        if not target_name:
+            assessments = manager.list_assessments()
+            if not assessments:
+                console.print(f"{GLYPH_WARN} [yellow]No assessments found.[/yellow]")
+                return
+            target_name = assessments[0]
+
+        runs_dir = Path(manager.runs_directory).resolve()
+        candidates = list_project4_candidates(target_name, runs_directory=runs_dir)
+        if not candidates:
+            console.print(f"{GLYPH_INFO} No candidate findings waiting for validation.")
+            return
+
+        console.print(f"\n{GLYPH_INFO} Validating {len(candidates)} candidates on [bold cyan]{target_name}[/bold cyan]...")
+        res_ids = [c["result_id"] for c in candidates]
+        run_project_4_batch_validation(target_name, result_ids=res_ids, runs_directory=runs_dir)
+        console.print(f"\n{GLYPH_SUCCESS} Headless Project 4 batch validation completed.")
+        return
+
+    if args.run_p5:
+        target_name = args.assessment
+        if not target_name:
+            assessments = manager.list_assessments()
+            if not assessments:
+                console.print(f"{GLYPH_WARN} [yellow]No assessments found.[/yellow]")
+                return
+            target_name = assessments[0]
+
+        console.print(f"\n{GLYPH_INFO} Generating Project 5 report headlessly for [bold cyan]{target_name}[/bold cyan]...")
+        md_p, json_p, rep = run_project_5(target_name, runs_directory=Path(manager.runs_directory).resolve())
+        console.print(f"{GLYPH_SUCCESS} Report generation completed successfully:")
+        console.print(f"  Markdown: [bold cyan]{md_p}[/bold cyan]")
+        console.print(f"  JSON:     [bold cyan]{json_p}[/bold cyan]")
+        return
+
+    # Interactive TUI mode
+    print_banner()
 
     while True:
         _print_main_menu()
 
-        choice = input("hunt-chain> ").strip()
+        try:
+            choice = input("hunt-chain> ").strip()
+        except (EOFError, KeyboardInterrupt):
+            console.print("\n[dim]Exiting Hunt_Chain...[/dim]")
+            break
 
         if choice == "1":
             _create_assessment(manager)
 
         elif choice == "2":
             name = _choose_assessment(manager)
-
             if name is not None:
                 _open_assessment(manager, name)
 
@@ -775,11 +823,11 @@ def main() -> None:
             _show_assessment_details(manager)
 
         elif choice == "0":
-            print("\nExiting Hunt_Chain.")
+            console.print("\n[bold cyan]Exiting Hunt_Chain. Happy hunting![/bold cyan]")
             return
 
         else:
-            print("\nInvalid selection.")
+            console.print(f"\n{GLYPH_FAIL} [red]Invalid selection.[/red]")
 
 
 if __name__ == "__main__":

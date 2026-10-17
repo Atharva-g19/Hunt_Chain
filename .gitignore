@@ -22,6 +22,9 @@ output/
 logs/
 **/output/
 **/logs/
+output_*/
+**/output_*/
+Hunt_Chain_Runs/
 
 # VS Code
 .vscode/
@@ -30,6 +33,15 @@ logs/
 __agent__/
 copy.txt
 desktop/
+scratch/
+.agents/
+skills-lock.json
+
+# Session tokens & cookies
+**/cookie.txt
+**/session.json
+cookie.txt
+session.json
 
 # OS files
 .DS_Store

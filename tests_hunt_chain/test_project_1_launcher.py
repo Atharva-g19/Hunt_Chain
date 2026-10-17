@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 
 from hunt_chain_core.project_1_launcher import PROJECT_1_OUTPUT
 

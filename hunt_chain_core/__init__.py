@@ -1,4 +1,4 @@
-﻿from .assessment_manager import AssessmentManager
+from .assessment_manager import AssessmentManager
 from .workflow import AssessmentWorkflow
 
 __all__ = [

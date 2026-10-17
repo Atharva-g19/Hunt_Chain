@@ -3,6 +3,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from hunt_chain_core.paths import secure_mkdir
 from hunt_chain_core.workflow import AssessmentWorkflow
 
 
@@ -26,6 +27,7 @@ def run_project_3(
     runs_directory: str | Path = "Hunt_Chain_Runs",
     test_ids: list[str] | tuple[str, ...] | None = None,
     endpoint_ids: list[str] | tuple[str, ...] | None = None,
+    cookie: str | None = None,
 ) -> Path:
     runs_path = Path(runs_directory)
 
@@ -66,10 +68,7 @@ def run_project_3(
         PROJECT_3_OUTPUT / assessment_name
     ).resolve()
 
-    output_directory.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
+    secure_mkdir(output_directory)
 
     output_file = (
         output_directory
@@ -102,6 +101,22 @@ def run_project_3(
     if endpoint_ids:
         for ep in endpoint_ids:
             command.extend(["--endpoint-id", ep])
+
+    if cookie:
+        command.extend(["--cookie", cookie])
+    else:
+        assessment_dir = runs_path / assessment_name
+        session_file = assessment_dir / "session.json"
+        cookie_file = assessment_dir / "cookie.txt"
+        if session_file.is_file():
+            command.extend(["--session-file", str(session_file.resolve())])
+        elif cookie_file.is_file():
+            try:
+                c_text = cookie_file.read_text(encoding="utf-8").strip()
+                if c_text:
+                    command.extend(["--cookie", c_text])
+            except Exception:
+                pass
 
     print()
     print("Starting Project 3: Vulnerability Testing")

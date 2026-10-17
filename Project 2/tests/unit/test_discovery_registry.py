@@ -1,4 +1,4 @@
-﻿"""Tests for the Hunt_Chain Project 2 discovery-provider registry."""
+"""Tests for the Hunt_Chain Project 2 discovery-provider registry."""
 
 from __future__ import annotations
 

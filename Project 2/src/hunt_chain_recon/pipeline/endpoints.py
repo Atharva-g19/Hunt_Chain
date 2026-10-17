@@ -1,4 +1,4 @@
-﻿"""Endpoint generation pipeline stage for Hunt_Chain Project 2."""
+"""Endpoint generation pipeline stage for Hunt_Chain Project 2."""
 
 from __future__ import annotations
 

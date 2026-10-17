@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 
@@ -54,5 +54,56 @@ def _run_project_2(
         return
 
     print()
-    print("Project 2 completed.")
-    print("Attack surface saved to assessment.")
+    print("=" * 60)
+    print("Project 2 Reconnaissance COMPLETED")
+    print("=" * 60)
+    try:
+        import json
+        from urllib.parse import urlsplit
+        with result.open("r", encoding="utf-8-sig") as h:
+            doc = json.load(h)
+
+        target_obj = doc.get("target", {})
+        target_val = target_obj.get("value") or target_obj.get("host") or ""
+        target_host = urlsplit(target_val).hostname or target_val or "N/A"
+
+        endpoints = doc.get("endpoints")
+        if not endpoints and isinstance(target_obj, dict):
+            endpoints = target_obj.get("endpoints", [])
+        if not endpoints:
+            endpoints = []
+
+        hosts = set()
+        for asset in doc.get("assets", []):
+            val = asset.get("value") or asset.get("normalized_value")
+            if val:
+                hosts.add(val)
+        for ep in endpoints:
+            hname = ep.get("hostname")
+            if not hname:
+                u = ep.get("url", "")
+                hname = urlsplit(u).hostname
+            if hname:
+                hosts.add(hname)
+        for dns in doc.get("dns_observations", []):
+            hname = dns.get("hostname")
+            if hname:
+                hosts.add(hname)
+        if target_host and target_host != "N/A":
+            hosts.add(target_host)
+
+        print(f"Target Host       : {target_host}")
+        print(f"Subdomains/Hosts  : {len(hosts)}")
+        for h in sorted(hosts)[:5]:
+            print(f"  - {h}")
+        if len(hosts) > 5:
+            print(f"  ... and {len(hosts) - 5} more")
+        print(f"Total Endpoints   : {len(endpoints)}")
+    except Exception:
+        pass
+    print(f"Output: {result}")
+    print()
+    print("=" * 60)
+    print("--> NEXT STEP: Proceed to Option 3 (Security Testing)")
+    print("    to run vulnerability checks across 22 categories.")
+    print("=" * 60)

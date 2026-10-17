@@ -28,6 +28,12 @@ def load_config(path: str | Path) -> ReconConfig:
     config_path = Path(path)
 
     if not config_path.is_file():
+        project2_root = Path(__file__).resolve().parents[3]
+        candidate = (project2_root / config_path).resolve()
+        if candidate.is_file():
+            config_path = candidate
+
+    if not config_path.is_file():
         raise ConfigurationError(
             f"Configuration file not found: {config_path}"
         )

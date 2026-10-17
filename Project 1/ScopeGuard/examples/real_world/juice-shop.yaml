@@ -1,4 +1,4 @@
-﻿version: "v1"
+version: "v1"
 
 program:
   name: "OWASP Juice Shop Security Testing"

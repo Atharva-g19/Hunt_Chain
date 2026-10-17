@@ -1,0 +1,501 @@
+[
+  {
+    "lab_id": "csrf-no-defenses",
+    "title": "Lab: CSRF vulnerability with no defenses",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-no-defenses",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net"},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "body": "email=attacker%40exploit.net"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-01"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "Authenticated email change endpoint without CSRF token or origin checks. Forged POST with victim ambient cookie succeeds in changing email."
+  },
+  {
+    "lab_id": "csrf-method-override",
+    "title": "Lab: CSRF where token validation depends on request method",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-request-method",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net"},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "body": "email=attacker%40exploit.net"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-01"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "POST requests validate CSRF tokens, but GET requests to /my-account/change-email execute the state change without validating tokens."
+  },
+  {
+    "lab_id": "csrf-token-omitted",
+    "title": "Lab: CSRF where token validation depends on token being present",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-token-validation-depends-on-token-being-present",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net", "csrf": "token_value"},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "body": "email=attacker%40exploit.net&csrf=token_value"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-01"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "Server validates token if present, but omitting the token parameter entirely bypasses validation and executes state change."
+  },
+  {
+    "lab_id": "csrf-token-not-tied-to-session",
+    "title": "Lab: CSRF where token is not tied to user session",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-token-not-tied-to-user-session",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net", "csrf": "session_a_token"},
+      "headers": {"Cookie": "session=session_b_cookie"},
+      "body": "email=attacker%40exploit.net&csrf=session_a_token"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-05"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "Dual-persona flaw: CSRF token pool is global; token issued to user A is accepted when submitted alongside user B's session."
+  },
+  {
+    "lab_id": "csrf-token-tied-to-non-session-cookie",
+    "title": "Lab: CSRF where token is tied to non-session cookie",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-token-tied-to-non-session-cookie",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net", "csrf": "token_value"},
+      "headers": {"Cookie": "session=victim_sess; csrfKey=attacker_key"},
+      "body": "email=attacker%40exploit.net&csrf=token_value"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-05"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "CSRF token is tied to a separate csrfKey cookie rather than session cookie; attacker can inject csrfKey via cookie tossing."
+  },
+  {
+    "lab_id": "csrf-double-submit-cookie",
+    "title": "Lab: CSRF where token is duplicated in cookie",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-token-duplicated-in-cookie",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net", "csrf": "test_token"},
+      "headers": {"Cookie": "session=victim_sess; csrf=test_token"},
+      "body": "email=attacker%40exploit.net&csrf=test_token"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-05"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "Naive double-submit cookie: server only checks that csrf cookie equals csrf body parameter without session-binding."
+  },
+  {
+    "lab_id": "csrf-referer-validation-omitted",
+    "title": "Lab: CSRF where Referer validation depends on header being present",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-referer-validation-depends-on-header-being-present",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net"},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "body": "email=attacker%40exploit.net"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-04"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "Server validates Referer when supplied, but fails open when Referer header is omitted via <meta name='referrer' content='never'>."
+  },
+  {
+    "lab_id": "csrf-broken-referer-validation",
+    "title": "Lab: CSRF with broken Referer validation",
+    "category": "CSRF",
+    "lab_url": "https://portswigger.net/web-security/csrf/lab-broken-referer-validation",
+    "endpoint": {
+      "method": "POST",
+      "path": "/my-account/change-email",
+      "parameters": {"email": "attacker@exploit.net"},
+      "headers": {"Cookie": "session=victim_session_token_123", "Referer": "https://target.com.attacker.net/exploit"},
+      "body": "email=attacker%40exploit.net"
+    },
+    "vulnerability_family": "csrf",
+    "expected_tester_ids": ["CSRF-04"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "POTENTIAL",
+    "description": "Referer validation uses naive substring/suffix matching, allowing attacker domain containing target hostname to bypass check."
+  },
+  {
+    "lab_id": "path-traversal-simple",
+    "title": "Lab: File path traversal, simple case",
+    "category": "Path Traversal",
+    "lab_url": "https://portswigger.net/web-security/file-path-traversal/lab-simple",
+    "endpoint": {
+      "method": "GET",
+      "path": "/image",
+      "parameters": {"filename": "21.jpg"},
+      "headers": {},
+      "body": null
+    },
+    "vulnerability_family": "path_traversal",
+    "expected_tester_ids": ["PATH-01"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "NEGATIVE CONTROL FOR CSRF: Read-only GET file retrieval endpoint vulnerable to path traversal. CSRF MUST report NOT_DETECTED."
+  },
+  {
+    "lab_id": "xss-reflected-html",
+    "title": "Lab: Reflected XSS into HTML context with nothing encoded",
+    "category": "Cross-Site Scripting (XSS)",
+    "lab_url": "https://portswigger.net/web-security/cross-site-scripting/reflected/lab-html-context-nothing-encoded",
+    "endpoint": {
+      "method": "GET",
+      "path": "/",
+      "parameters": {"search": "test"},
+      "headers": {},
+      "body": null
+    },
+    "vulnerability_family": "xss",
+    "expected_tester_ids": ["XSS-01"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "NEGATIVE CONTROL FOR CSRF: Search page reflecting query parameter in HTML. CSRF MUST report NOT_DETECTED."
+  },
+  {
+    "lab_id": "cors-basic-origin-reflection",
+    "title": "Lab: CORS vulnerability with basic origin reflection",
+    "category": "CORS",
+    "lab_url": "https://portswigger.net/web-security/cors/lab-basic-origin-reflection-attack",
+    "endpoint": {
+      "method": "GET",
+      "path": "/accountDetails",
+      "parameters": {},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "response_body": "{\"username\": \"wiener\", \"email\": \"wiener@normal-user.net\", \"apikey\": \"SECRET_KEY_123\"}"
+    },
+    "vulnerability_family": "cors_misconfiguration",
+    "expected_tester_ids": ["CORS-02", "CORS-04"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "GET endpoint reflecting arbitrary Origin with Access-Control-Allow-Credentials: true. Exposes sensitive account details."
+  },
+  {
+    "lab_id": "sqli-where-hidden-data",
+    "title": "Lab: SQL injection vulnerability in WHERE clause allowing retrieval of hidden data",
+    "category": "SQL Injection",
+    "lab_url": "https://portswigger.net/web-security/sql-injection/lab-retrieve-hidden-data",
+    "endpoint": {
+      "method": "GET",
+      "path": "/filter",
+      "parameters": {"category": "Gifts"},
+      "headers": {},
+      "body": null
+    },
+    "vulnerability_family": "sql_injection",
+    "expected_tester_ids": ["SQLI-01"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "NEGATIVE CONTROL FOR CSRF: Catalog category filter with SQL injection. CSRF MUST report NOT_DETECTED."
+  },
+  {
+    "lab_id": "auth-oauth-implicit-bypass",
+    "title": "Lab: Authentication bypass via OAuth implicit flow",
+    "category": "OAuth",
+    "lab_url": "https://portswigger.net/web-security/oauth/lab-oauth-authentication-bypass-via-oauth-implicit-flow",
+    "endpoint": {
+      "method": "POST",
+      "path": "/authenticate",
+      "parameters": {"email": "carlos@carlos-montoya.net", "username": "carlos", "token": "oauth_token_val"},
+      "headers": {"Content-Type": "application/json"},
+      "body": "{\"email\":\"carlos@carlos-montoya.net\",\"username\":\"carlos\",\"token\":\"oauth_token_val\"}"
+    },
+    "vulnerability_family": "authentication_bypass",
+    "expected_tester_ids": ["AUTH-07"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "Client-side OAuth implicit flow forwards arbitrary email to /authenticate endpoint without backend signature validation, allowing account login as any user."
+  },
+  {
+    "lab_id": "auth-oauth-forced-profile-linking",
+    "title": "Lab: Forced OAuth profile linking",
+    "category": "OAuth",
+    "lab_url": "https://portswigger.net/web-security/oauth/lab-oauth-forced-profile-linking",
+    "endpoint": {
+      "method": "GET",
+      "path": "/oauth-linking",
+      "parameters": {"code": "auth_code_xyz"},
+      "headers": {"Cookie": "session=victim_session"},
+      "body": null
+    },
+    "vulnerability_family": "authentication_bypass",
+    "expected_tester_ids": ["AUTH-07"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "OAuth profile linking flow lacks state parameter (CSRF on OAuth callback), allowing attacker to trick victim into attaching attacker's social profile."
+  },
+  {
+    "lab_id": "auth-oauth-redirect-uri-hijack",
+    "title": "Lab: OAuth account hijacking via redirect_uri",
+    "category": "OAuth",
+    "lab_url": "https://portswigger.net/web-security/oauth/lab-oauth-account-hijacking-via-redirect-uri",
+    "endpoint": {
+      "method": "GET",
+      "path": "/auth",
+      "parameters": {"client_id": "123", "redirect_uri": "https://target.com/callback", "response_type": "code", "scope": "openid profile"},
+      "headers": {},
+      "body": null
+    },
+    "vulnerability_family": "authentication_bypass",
+    "expected_tester_ids": ["AUTH-07"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "OAuth authorization server permits arbitrary or directory traversal redirect_uri, leaking authorization codes to attacker-controlled domains."
+  },
+  {
+    "lab_id": "auth-2fa-simple-bypass",
+    "title": "Lab: 2FA simple bypass",
+    "category": "Authentication",
+    "lab_url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-simple-bypass",
+    "endpoint": {
+      "method": "GET",
+      "path": "/my-account",
+      "parameters": {},
+      "headers": {"Cookie": "session=pre_2fa_session"},
+      "body": null
+    },
+    "vulnerability_family": "authentication_bypass",
+    "expected_tester_ids": ["AUTH-08"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "After entering step-1 credentials, navigating directly to /my-account bypasses step-2 MFA verification completely."
+  },
+  {
+    "lab_id": "auth-username-enumeration-responses",
+    "title": "Lab: Username enumeration via different responses",
+    "category": "Authentication",
+    "lab_url": "https://portswigger.net/web-security/authentication/password-based/lab-username-enumeration-via-different-responses",
+    "endpoint": {
+      "method": "POST",
+      "path": "/login",
+      "parameters": {"username": "invalid_user", "password": "wrong_password"},
+      "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+      "body": "username=invalid_user&password=wrong_password",
+      "response_body": "<p class=is-warning>Invalid username</p>"
+    },
+    "vulnerability_family": "ato",
+    "expected_tester_ids": ["ATO-03"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "Login error messages differ between valid and invalid usernames ('Invalid username' vs 'Incorrect password'), enabling enumeration."
+  },
+  {
+    "lab_id": "auth-2fa-broken-logic",
+    "title": "Lab: 2FA broken logic",
+    "category": "Authentication",
+    "lab_url": "https://portswigger.net/web-security/authentication/multi-factor/lab-2fa-broken-logic",
+    "endpoint": {
+      "method": "POST",
+      "path": "/login2",
+      "parameters": {"mfa-code": "1234"},
+      "headers": {"Cookie": "verify=victim_user"},
+      "body": "mfa-code=1234"
+    },
+    "vulnerability_family": "ato",
+    "expected_tester_ids": ["ATO-04"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "2FA code verification relies on user cookie rather than authenticated session, allowing brute-forcing 2FA code for any user."
+  },
+  {
+    "lab_id": "cors-trusted-null-origin",
+    "title": "Lab: CORS vulnerability with trusted null origin",
+    "category": "CORS",
+    "lab_url": "https://portswigger.net/web-security/cors/lab-null-origin-whitelisted-attack",
+    "endpoint": {
+      "method": "GET",
+      "path": "/accountDetails",
+      "parameters": {},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "response_body": "{\"username\": \"wiener\", \"email\": \"wiener@normal-user.net\", \"apikey\": \"SECRET_KEY_123\"}"
+    },
+    "vulnerability_family": "cors_misconfiguration",
+    "expected_tester_ids": ["CORS-04", "CORS-03"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "Endpoint whitelists null origin with Access-Control-Allow-Credentials: true, exploitable via iframe sandbox."
+  },
+  {
+    "lab_id": "cors-trusted-insecure-protocol",
+    "title": "Lab: CORS vulnerability with trusted insecure protocol",
+    "category": "CORS",
+    "lab_url": "https://portswigger.net/web-security/cors/lab-breaking-in-via-cors-trust-relationship",
+    "endpoint": {
+      "method": "GET",
+      "path": "/accountDetails",
+      "parameters": {},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "response_body": "{\"username\": \"wiener\", \"email\": \"wiener@normal-user.net\", \"apikey\": \"SECRET_KEY_123\"}"
+    },
+    "vulnerability_family": "cors_misconfiguration",
+    "expected_tester_ids": ["CORS-04"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "Endpoint trusts subdomain over HTTP with Access-Control-Allow-Credentials: true."
+  },
+  {
+    "lab_id": "cors-internal-intranet-subdomain",
+    "title": "Lab: CORS vulnerability with internal intranet subdomain",
+    "category": "CORS",
+    "lab_url": "https://portswigger.net/web-security/cors/lab-internal-intranet-subdomain",
+    "endpoint": {
+      "method": "GET",
+      "path": "/accountDetails",
+      "parameters": {},
+      "headers": {"Cookie": "session=victim_session_token_123"},
+      "response_body": "{\"username\": \"wiener\", \"email\": \"wiener@normal-user.net\", \"apikey\": \"SECRET_KEY_123\"}"
+    },
+    "vulnerability_family": "cors_misconfiguration",
+    "expected_tester_ids": ["CORS-04"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "Endpoint trusts intranet subdomain with Access-Control-Allow-Credentials: true."
+  },
+  {
+    "lab_id": "ssrf-basic-local-server",
+    "title": "Lab: Basic SSRF against the local server",
+    "category": "SSRF",
+    "lab_url": "https://portswigger.net/web-security/ssrf/lab-basic-ssrf-against-localhost",
+    "endpoint": {
+      "method": "POST",
+      "path": "/product/stock",
+      "parameters": {"stockApi": "http://stock.weliketoshop.net:8080/product/stock/check?productId=1&storeId=1"},
+      "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+      "body": "stockApi=http%3A%2F%2Fstock.weliketoshop.net%3A8080%2Fproduct%2Fstock%2Fcheck%3FproductId%3D1%26storeId%3D1"
+    },
+    "vulnerability_family": "ssrf",
+    "expected_tester_ids": ["SSRF-01"],
+    "expected_p3_status": "CONFIRMED",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "escalation_rung": 1,
+    "description": "Stock check feature accesses internal localhost /admin interface without filtering."
+  },
+  {
+    "lab_id": "ssrf-blacklist-filter-bypass",
+    "title": "Lab: SSRF with blacklist-based input filter",
+    "category": "SSRF",
+    "lab_url": "https://portswigger.net/web-security/ssrf/lab-ssrf-with-blacklist-filter",
+    "endpoint": {
+      "method": "POST",
+      "path": "/product/stock",
+      "parameters": {"stockApi": "http://stock.weliketoshop.net:8080/product/stock/check?productId=1&storeId=1"},
+      "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+      "body": "stockApi=http%3A%2F%2Fstock.weliketoshop.net%3A8080%2Fproduct%2Fstock%2Fcheck%3FproductId%3D1%26storeId%3D1"
+    },
+    "vulnerability_family": "ssrf",
+    "expected_tester_ids": ["SSRF-01"],
+    "expected_p3_status": "CONFIRMED",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "escalation_rung": 2,
+    "description": "Hardened SSRF lab: 127.0.0.1 and localhost blocked by blacklist; bypassed using Rung 2 decimal IP (2130706433)."
+  },
+  {
+    "lab_id": "ssrf-whitelist-filter-bypass",
+    "title": "Lab: SSRF with whitelist-based input filter",
+    "category": "SSRF",
+    "lab_url": "https://portswigger.net/web-security/ssrf/lab-ssrf-with-whitelist-filter",
+    "endpoint": {
+      "method": "POST",
+      "path": "/product/stock",
+      "parameters": {"stockApi": "http://stock.weliketoshop.net:8080/product/stock/check?productId=1&storeId=1"},
+      "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+      "body": "stockApi=http%3A%2F%2Fstock.weliketoshop.net%3A8080%2Fproduct%2Fstock%2Fcheck%3FproductId%3D1%26storeId%3D1"
+    },
+    "vulnerability_family": "ssrf",
+    "expected_tester_ids": ["SSRF-01"],
+    "expected_p3_status": "CONFIRMED",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "escalation_rung": 3,
+    "description": "Hardened SSRF lab: strictly checks allowlisted host; bypassed via Rung 3 userinfo differential (@ syntax)."
+  },
+  {
+    "lab_id": "ssrf-blind-out-of-band",
+    "title": "Lab: Blind SSRF with out-of-band detection",
+    "category": "SSRF",
+    "lab_url": "https://portswigger.net/web-security/ssrf/blind/lab-out-of-band-detection",
+    "endpoint": {
+      "method": "POST",
+      "path": "/product/stock",
+      "parameters": {"stockApi": "http://stock.weliketoshop.net:8080/product/stock/check?productId=1&storeId=1"},
+      "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+      "body": "stockApi=http%3A%2F%2Fstock.weliketoshop.net%3A8080%2Fproduct%2Fstock%2Fcheck%3FproductId%3D1%26storeId%3D1"
+    },
+    "vulnerability_family": "ssrf",
+    "expected_tester_ids": ["SSRF-01"],
+    "expected_p3_status": "CONFIRMED",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "escalation_rung": 1,
+    "description": "Blind SSRF where server issues outbound HTTP fetch to researcher-controlled canary domain without reflecting content."
+  },
+  {
+    "lab_id": "ssrf-filter-bypass-via-open-redirection",
+    "title": "Lab: SSRF with filter bypass via open redirection tool",
+    "category": "SSRF",
+    "lab_url": "https://portswigger.net/web-security/ssrf/lab-ssrf-filter-bypass-via-open-redirection",
+    "endpoint": {
+      "method": "POST",
+      "path": "/product/stock",
+      "parameters": {"stockApi": "https://target.example/product/nextProduct?path=http://192.168.0.12:8080/admin"},
+      "headers": {"Content-Type": "application/x-www-form-urlencoded"},
+      "body": "stockApi=%2Fproduct%2FnextProduct%3Fpath%3Dhttp%3A%2F%2F192.168.0.12%3A8080%2Fadmin"
+    },
+    "vulnerability_family": "ssrf",
+    "expected_tester_ids": ["SSRF-05"],
+    "expected_p3_status": "POTENTIAL",
+    "expected_p4_decision": "CONFIRMED",
+    "csrf_family_expected_status": "NOT_DETECTED",
+    "description": "SSRF allowlist bypassed by redirecting through local open redirection endpoint."
+  }
+]
