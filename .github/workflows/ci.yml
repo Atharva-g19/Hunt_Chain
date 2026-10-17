@@ -28,7 +28,7 @@ jobs:
       - name: Install dependencies and Hunt_Chain packages
         run: |
           python -m pip install --upgrade pip setuptools wheel
-          pip install pytest pytest-cov pyyaml rich requests pydantic urllib3 jsonschema
+          pip install pytest pytest-cov pyyaml rich requests pydantic urllib3 jsonschema dnspython
           pip install -e "Project 1/ScopeGuard"
           pip install -e "Project 2"
           pip install -e "Project_3_Vulnerability"
