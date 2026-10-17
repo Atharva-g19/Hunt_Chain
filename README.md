@@ -172,9 +172,15 @@ source .venv/bin/activate
 # On Windows:
 .venv\Scripts\activate
 
-# 3. Install core dependencies
-pip install --upgrade pip
-pip install pytest pyyaml rich requests pydantic urllib3
+# 3. Install dependencies and subpackages in editable mode
+pip install --upgrade pip setuptools wheel
+pip install pytest pytest-cov pyyaml rich requests pydantic urllib3 jsonschema dnspython
+pip install -e "Project 1/ScopeGuard"
+pip install -e "Project 2"
+pip install -e "Project_3_Vulnerability"
+pip install -e "Project_4_Validation_Exploitation"
+pip install -e "Project_5_Reporting"
+pip install -e .
 ```
 
 ### Launching the Interactive Console
@@ -201,30 +207,45 @@ hunt-chain>
 
 ## Running Test Suites
 
-Hunt_Chain comes with extensive unit, integration, and regression test suites across all 5 projects:
+Hunt_Chain comes with comprehensive unit, integration, and ground-truth regression test suites:
 
 ```bash
-# ScopeGuard (Project 1)
+# ScopeGuard (Project 1 - 304 tests)
 python -m pytest "Project 1/ScopeGuard/tests" -v
 
-# Reconnaissance Suite (Project 2)
+# Reconnaissance Suite (Project 2 - 470 tests)
 python -m pytest "Project 2/tests" -v
 
 # Vulnerability Engine & 22 Families (Project 3)
 python -m pytest "Project_3_Vulnerability/tests" -v
 
-# Validation & Exploitation Layer (Project 4)
+# Validation & Exploitation Layer (Project 4 - 105 tests)
 python -m pytest "Project_4_Validation_Exploitation/tests" -v
 
-# Reporting Manager (Project 5)
+# Reporting Manager (Project 5 - 17 tests)
 python -m pytest "Project_5_Reporting/tests" -v
 
-# Core Orchestrator Integration
+# Core Orchestrator Integration (44 tests)
 python -m pytest tests_hunt_chain -v
+
+# Ground-Truth Regression Harness (55 tests)
+python -m pytest tests -v
 ```
+
+---
+
+## Security & Responsible Disclosure
+
+Hunt_Chain is strictly designed for **authorized penetration testing and bug bounty engagements**. Testing targets without explicit permission is illegal. Please review our [Security Policy & Ethical Guidelines](SECURITY.md) before use.
+
+---
+
+## Contributing & Community
+
+We welcome community contributions, new vulnerability tester families, and bug fixes! Please read our [Contributing Guide](CONTRIBUTING.md) and adhere to our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE). Copyright (c) 2026 Atharva and Hunt_Chain Contributors.
