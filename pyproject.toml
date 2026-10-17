@@ -1,25 +1,30 @@
 [project]
-name = "hunt-chain-project4"
+name = "hunt-chain"
 version = "0.1.0"
-description = "Hunt_Chain Project 4 - Validation and Controlled Exploitation"
-requires-python = ">=3.13"
-dependencies = []
+description = "Hunt_Chain - Authorized Security Testing & Vulnerability Orchestration Framework"
+requires-python = ">=3.11"
+dependencies = [
+    "pyyaml>=6.0",
+    "rich>=13.0",
+    "requests>=2.28",
+    "pydantic>=2.0",
+    "urllib3>=2.0",
+]
 
 [build-system]
-requires = ["setuptools>=75"]
+requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-package-dir = {"" = "src"}
-
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["hunt_chain_core*"]
 
 [tool.pytest.ini_options]
 addopts = "-q"
 pythonpath = [
     ".",
     "Project 1/ScopeGuard/src",
+    "Project 2",
     "Project 2/src",
     "Project_3_Vulnerability/src",
     "Project_4_Validation_Exploitation/src",

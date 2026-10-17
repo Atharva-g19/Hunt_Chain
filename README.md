@@ -38,7 +38,7 @@ The entire workflow starts with the primary rule of offensive security:
 
 ```mermaid
 flowchart TD
-    subgraph Program ["0. Target Authorization"]
+    subgraph Program ["Target Authorization"]
         A[Program Scope Specification<br>YAML Rules] --> P1[Stage 1: ScopeGuard]
     end
 
@@ -48,26 +48,26 @@ flowchart TD
         G -- IN_SCOPE --> AuthArt[authorization_result.json]
     end
 
-    subgraph Recon ["1. Attack Surface Mapping"]
+    subgraph Recon ["Attack Surface Mapping"]
         AuthArt --> P2[Stage 2: Reconnaissance Suite]
         P2 --> P2_Passive[Passive CT / DNS]
         P2 --> P2_Active[HTTP Fingerprinting & Endpoints]
         P2_Passive & P2_Active --> ASM[attack_surface.json]
     end
 
-    subgraph Vuln ["2. Vulnerability Testing"]
+    subgraph Vuln ["Vulnerability Testing"]
         ASM --> P3[Stage 3: Vulnerability Engine]
         P3 --> P3_Families[22 Core Tester Families]
         P3_Families --> P3_Out[vulnerability_result.json]
     end
 
-    subgraph Valid ["3. Validation & Exploitation"]
+    subgraph Valid ["Validation & Exploitation"]
         P3_Out --> P4[Stage 4: Validation Layer]
         P4 --> P4_Strat[Non-Destructive Exploit Strategies]
         P4_Strat --> P4_Out[project4_validation.json]
     end
 
-    subgraph Report ["4. Findings & Reporting"]
+    subgraph Report ["Findings & Reporting"]
         AuthArt & ASM & P3_Out & P4_Out --> P5[Stage 5: Reporting Manager]
         P5 --> P5_CWE[CWE-1000 Taxonomy & CVSS 3.1]
         P5 --> P5_Redact[Automated Secret Redaction Safety Net]
