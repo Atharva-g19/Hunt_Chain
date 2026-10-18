@@ -163,16 +163,22 @@ Hunt_Chain is engineered to run seamlessly on **Linux (Ubuntu, Debian, Kali, Arc
 git clone https://github.com/Atharva-g19/Hunt_Chain.git
 cd Hunt_Chain
 
-# 2. Create and activate a virtual environment
+# 2. Create a virtual environment locally
+# (Virtual environments are generated on your machine and are not committed to Git)
 python -m venv .venv
 
+# 3. Activate the virtual environment
 # On Linux / macOS:
 source .venv/bin/activate
 
-# On Windows:
-.venv\Scripts\activate
+# On Windows (PowerShell):
+.\.venv\Scripts\Activate.ps1
+# (Note: If PowerShell blocks script execution, run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned)
 
-# 3. Install dependencies and subpackages in editable mode
+# On Windows (Command Prompt):
+.venv\Scripts\activate.bat
+
+# 4. Install dependencies and subpackages in editable mode
 pip install --upgrade pip setuptools wheel
 pip install pytest pytest-cov pyyaml rich requests pydantic urllib3 jsonschema dnspython
 pip install -e "Project 1/ScopeGuard"
