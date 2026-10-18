@@ -60,17 +60,27 @@ def _load_validation_history(
             doc = json.load(handle)
 
         history: dict[str, dict[str, Any]] = {}
+
+        def _record(entry: dict[str, Any]) -> None:
+            fid = entry.get("finding_id")
+            rid = entry.get("result_id")
+            tid = entry.get("test_id")
+            if fid:
+                history[str(fid)] = entry
+            if rid:
+                history[str(rid)] = entry
+                if str(rid).endswith(":validation"):
+                    history[str(rid)[:-11]] = entry
+            if tid and str(tid) not in history:
+                history[str(tid)] = entry
+
         if isinstance(doc, dict):
             if "results" in doc and isinstance(doc["results"], list):
                 for item in doc["results"]:
                     if isinstance(item, dict):
-                        rid = item.get("result_id") or item.get("finding_id")
-                        if rid:
-                            history[rid] = item
+                        _record(item)
             elif "result_id" in doc or "finding_id" in doc:
-                rid = doc.get("result_id") or doc.get("finding_id")
-                if rid:
-                    history[rid] = doc
+                _record(doc)
         return history
     except Exception:
         return {}
@@ -348,13 +358,21 @@ def _run_project_4(
                 host = _extract_host(candidate)
                 tag = domain_tags.get(host, "D?")
 
-                rid = candidate.get("result_id", "")
-                if rid in history:
-                    decision = str(history[rid].get("decision", "")).upper()
-                    if decision == "CONFIRMED":
+                rid = str(candidate.get("result_id", ""))
+                tid = str(candidate.get("test_id", ""))
+                rec = (
+                    history.get(rid)
+                    or history.get(f"{rid}:validation")
+                    or history.get(tid)
+                )
+                if rec:
+                    decision = str(rec.get("decision") or rec.get("status") or "").upper()
+                    if decision in ("CONFIRMED", "VULNERABLE"):
                         status_str = "[bold green]✔ CONFIRMED[/bold green]"
-                    elif decision == "NOT_CONFIRMED":
+                    elif decision in ("NOT_CONFIRMED", "REFUTED", "NOT_VULNERABLE"):
                         status_str = "[bold red]✖ REFUTED[/bold red]"
+                    elif decision in ("BLOCKED", "ERROR"):
+                        status_str = f"[bold red]✖ {decision}[/bold red]"
                     else:
                         status_str = f"[bold yellow]◌ {decision}[/bold yellow]"
                 else:
@@ -472,7 +490,13 @@ def _run_project_4(
                     assessment_name,
                     runs_directory,
                 )
-                rec = history_now.get(item["result_id"], {})
+                rid_item = str(item.get("result_id", ""))
+                rec = (
+                    history_now.get(rid_item)
+                    or history_now.get(f"{rid_item}:validation")
+                    or history_now.get(item.get("test_id", ""))
+                    or {}
+                )
                 decision = str(rec.get("decision", "COMPLETED")).upper()
                 is_conf = decision == "CONFIRMED" or bool(rec.get("confirmed"))
                 severity = rec.get("severity") or item.get("confidence") or "HIGH"
@@ -539,8 +563,13 @@ def _run_project_4(
                 conf_count = 0
                 not_conf_count = 0
                 for c in selected:
-                    rid = c["result_id"]
-                    rec = history_now.get(rid, {})
+                    rid = str(c.get("result_id", ""))
+                    rec = (
+                        history_now.get(rid)
+                        or history_now.get(f"{rid}:validation")
+                        or history_now.get(c.get("test_id", ""))
+                        or {}
+                    )
                     dec = str(rec.get("decision", "UNKNOWN")).upper()
                     if dec == "CONFIRMED":
                         conf_count += 1

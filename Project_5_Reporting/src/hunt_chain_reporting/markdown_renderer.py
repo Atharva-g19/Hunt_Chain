@@ -83,7 +83,8 @@ def render_markdown_report(report_data: ReportData) -> str:
             if finding.parameter:
                 lines.append(f"- **Vulnerable Parameter**: `{finding.parameter}`")
             if finding.contributing_tester_ids:
-                lines.append(f"- **Contributing Tester IDs**: `{', '.join(finding.contributing_tester_ids)}`")
+                tester_strs = [str(t.get("test_id", t) if isinstance(t, dict) else t) for t in finding.contributing_tester_ids]
+                lines.append(f"- **Contributing Tester IDs**: `{', '.join(tester_strs)}`")
             lines.append("")
 
             # Description
@@ -223,7 +224,11 @@ def render_markdown_report(report_data: ReportData) -> str:
     lines.append(f"- **Authorized Target Asset**: `{sc.authorized_target}`")
     lines.append(f"- **Authorization Timestamp**: `{sc.authorization_timestamp}`")
     lines.append(f"- **Attack Surface Discovered (Project 2)**: `{sc.discovered_assets_count}` assets/endpoints")
-    lines.append(f"- **Technologies Fingerprinted**: {', '.join(sc.technologies_fingerprinted)}")
+    tech_strs = [
+        str(t.get("name", t) if isinstance(t, dict) else t)
+        for t in sc.technologies_fingerprinted
+    ] if sc.technologies_fingerprinted else ["None specified"]
+    lines.append(f"- **Technologies Fingerprinted**: {', '.join(tech_strs)}")
     lines.append(f"- **Vulnerability Families Tested (Project 3)**: {len(sc.families_run)} families")
     lines.append(f"- **Total Testers Fired**: `{sc.testers_fired_count}`")
     lines.append(f"- **Total Requests Executed**: `{sc.total_requests_made}` (Budget-compliant)")

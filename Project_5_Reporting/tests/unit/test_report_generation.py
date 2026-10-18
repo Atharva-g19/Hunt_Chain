@@ -212,3 +212,55 @@ def test_end_to_end_writer_dual_output(tmp_path: Path):
     assert len(parsed["confirmed_findings"]) == 1
     assert parsed["confirmed_findings"][0]["severity"] == "CRITICAL"
     assert parsed["confirmed_findings"][0]["cwe_id"] == "CWE-89"
+
+
+def test_dict_technologies_and_endpoints_render_cleanly(tmp_path: Path):
+    auth_data = {"state": "IN_SCOPE", "rule_id": "R1", "target": "demo.com"}
+    recon_data = {
+        "technologies": [
+            {"id": "t1", "name": "Nginx", "category": "web-server", "version": "1.18.0"},
+            {"id": "t2", "name": "Python", "category": "runtime", "version": "3.11"},
+        ],
+        "endpoints": [{"url": "https://demo.com/api"}],
+    }
+    vuln_data = {
+        "findings": [
+            {
+                "result_id": "res-101",
+                "test_id": "XSS-01",
+                "family": "xss",
+                "status": "POTENTIAL",
+                "severity": "HIGH",
+                "endpoint": {"url": "https://demo.com/search", "method": "GET"},
+                "evidence": "<script>alert(1)</script>",
+            }
+        ]
+    }
+    val_data = {
+        "results": [
+            {
+                "result_id": "res-101:validation",
+                "finding_id": "res-101",
+                "decision": "CONFIRMED",
+                "proof": "Executed alert(1) payload",
+            }
+        ]
+    }
+
+    md_path, json_path, report = write_report_artifacts(
+        output_directory=tmp_path,
+        authorization_data=auth_data,
+        attack_surface_data=recon_data,
+        vulnerability_data=vuln_data,
+        validation_data=val_data,
+    )
+
+    assert md_path.is_file()
+    assert json_path.is_file()
+
+    md_content = md_path.read_text(encoding="utf-8")
+    assert "Nginx (1.18.0), Python (3.11)" in md_content
+    assert "https://demo.com/search" in md_content
+    # Verified that Project 4 confirmed status was picked up from finding_id
+    assert report.executive_summary.confirmed_count == 1
+

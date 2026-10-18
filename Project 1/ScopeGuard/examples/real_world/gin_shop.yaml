@@ -11,4 +11,4 @@ scope:
         type: "url"
         value: "https://ginandjuice.shop/"
       category: "web"
-      description: "Authorized OWASP Juice Shop training target for non-destructive security testing."
+      description: "Authorized PortSwigger Gin and Juice Shop training target for non-destructive security testing."

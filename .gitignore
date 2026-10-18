@@ -47,3 +47,11 @@ session.json
 .DS_Store
 Thumbs.db
 .continue/
+
+# Backups & local notes
+*.bak
+Report/
+
+# User-created scopes (keep .gitkeep tracked)
+Project 1/ScopeGuard/scopes/*.yaml
+!Project 1/ScopeGuard/scopes/.gitkeep

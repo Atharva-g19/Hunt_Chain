@@ -129,3 +129,45 @@ def test_parse_candidate_selection_commands():
     sel, cmd = _parse_candidate_selection("clear", cands, domain_tags, tag_to_cands)
     assert cmd == "CLEAR_FILTER"
     assert sel is None
+
+
+def test_load_validation_history(tmp_path):
+    import json
+    from hunt_chain_core.project_4_ui import _load_validation_history
+
+    assessment_dir = tmp_path / "test_assessment"
+    assessment_dir.mkdir(parents=True)
+    val_file = assessment_dir / "project4_validation.json"
+
+    val_data = {
+        "schema_version": "v1",
+        "results": [
+            {
+                "result_id": "r-01:validation",
+                "finding_id": "r-01",
+                "test_id": "TEST-01",
+                "decision": "CONFIRMED",
+            },
+            {
+                "result_id": "r-02:validation",
+                "finding_id": "r-02",
+                "test_id": "TEST-02",
+                "decision": "NOT_CONFIRMED",
+            },
+        ],
+    }
+    val_file.write_text(json.dumps(val_data), encoding="utf-8")
+
+    history = _load_validation_history("test_assessment", tmp_path)
+
+    # Bare finding_id lookup
+    assert "r-01" in history
+    assert history["r-01"]["decision"] == "CONFIRMED"
+
+    # With :validation suffix lookup
+    assert "r-01:validation" in history
+
+    # Refuted check
+    assert "r-02" in history
+    assert history["r-02"]["decision"] == "NOT_CONFIRMED"
+

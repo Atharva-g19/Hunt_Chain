@@ -1,2 +1,0 @@
-[console_scripts]
-scopeguard = scopeguard.cli.main:main

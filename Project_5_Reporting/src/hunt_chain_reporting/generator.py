@@ -162,7 +162,7 @@ def generate_report(
     vulnerability_data = vulnerability_data or {}
     validation_data = validation_data or {}
 
-    # 2. Extract Project 4 validations map: result_id -> validation_entry
+    # 2. Extract Project 4 validations map: result_id/finding_id -> validation_entry
     p4_validations: dict[str, dict[str, Any]] = {}
     raw_p4_list = (
         validation_data.get("validations")
@@ -170,9 +170,18 @@ def generate_report(
         or []
     )
     for v in raw_p4_list:
-        res_id = v.get("result_id") or v.get("test_id")
-        if res_id:
-            p4_validations[res_id] = v
+        if isinstance(v, dict):
+            fid = v.get("finding_id")
+            rid = v.get("result_id")
+            tid = v.get("test_id")
+            if fid:
+                p4_validations[str(fid)] = v
+            if rid:
+                p4_validations[str(rid)] = v
+                if str(rid).endswith(":validation"):
+                    p4_validations[str(rid)[:-11]] = v
+            if tid and str(tid) not in p4_validations:
+                p4_validations[str(tid)] = v
 
     # 3. Process Findings from Project 3
     raw_findings = (
@@ -194,26 +203,46 @@ def generate_report(
         severity = str(item.get("severity") or item.get("severity_label") or "MEDIUM").upper()
 
         endpoint = item.get("endpoint") or item.get("url") or item.get("path") or ""
+        if isinstance(endpoint, dict):
+            endpoint = endpoint.get("url") or endpoint.get("path") or endpoint.get("endpoint_id") or ""
         method = item.get("method") or "GET"
         parameter = item.get("parameter") or item.get("param") or ""
         target = item.get("host") or item.get("target") or authorized_target
+        if isinstance(target, dict):
+            target = target.get("host") or target.get("name") or str(authorized_target)
 
         evidence = str(item.get("evidence") or item.get("observation") or "")
         description = item.get("description") or f"A {meta.display_name} vulnerability was detected on {endpoint or target}."
         raw_manual_steps = item.get("suggested_manual_steps") or item.get("manual_steps") or ()
 
         # Check if Project 4 validated this finding
-        p4_entry = p4_validations.get(item.get("result_id", test_id)) or p4_validations.get(test_id)
+        item_rid = str(item.get("result_id") or "")
+        p4_entry = (
+            p4_validations.get(item_rid)
+            or p4_validations.get(f"{item_rid}:validation")
+            or p4_validations.get(test_id)
+        )
         is_confirmed = False
 
         if p4_entry:
-            p4_status = str(p4_entry.get("status", "")).upper()
+            p4_status = str(
+                p4_entry.get("decision")
+                or p4_entry.get("status")
+                or p4_entry.get("state")
+                or ""
+            ).upper()
             if p4_status in ("CONFIRMED", "VALIDATED", "VULNERABLE"):
                 is_confirmed = True
-                proof = p4_entry.get("proof") or p4_entry.get("proof_token") or p4_entry.get("observation_diff")
+                proof = (
+                    p4_entry.get("proof")
+                    or p4_entry.get("proof_token")
+                    or p4_entry.get("observation_diff")
+                    or p4_entry.get("observable_evidence")
+                    or p4_entry.get("observation")
+                )
                 if proof:
                     evidence = f"{evidence}\n[Validation Proof]: {proof}".strip()
-            elif p4_status in ("NOT_CONFIRMED", "REJECTED", "FALSE_POSITIVE"):
+            elif p4_status in ("NOT_CONFIRMED", "REJECTED", "FALSE_POSITIVE", "REFUTED"):
                 is_confirmed = False
         else:
             # If Project 4 not present, rely on direct Project 3 confirmation
@@ -374,15 +403,32 @@ def generate_report(
         or len(attack_surface_data.get("assets", []))
         or 1
     )
-    technologies = list(
+    raw_technologies = (
         attack_surface_data.get("technologies", [])
         or attack_surface_data.get("tech_stack", [])
         or ["HTTP/1.1 REST API", "Web Application"]
     )
-    families_tested = list(
+    technologies: list[str] = []
+    for t in raw_technologies:
+        if isinstance(t, dict):
+            name = t.get("name") or t.get("technology") or t.get("id") or "Unknown"
+            ver = t.get("version")
+            technologies.append(f"{name} ({ver})" if ver else str(name))
+        elif isinstance(t, str):
+            technologies.append(t)
+        else:
+            technologies.append(str(t))
+    if not technologies:
+        technologies = ["HTTP/1.1 REST API", "Web Application"]
+
+    raw_families = (
         vulnerability_data.get("families_tested", [])
         or list({f.vulnerability_family for f in (confirmed_sorted + candidates_list)})
     )
+    families_tested: list[str] = [
+        t.get("name", str(t)) if isinstance(t, dict) else str(t)
+        for t in raw_families
+    ]
     testers_count = len(raw_findings)
     total_requests = vulnerability_data.get("total_requests", max(testers_count * 2, 10))
 

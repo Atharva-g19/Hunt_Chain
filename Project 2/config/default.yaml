@@ -4,7 +4,7 @@ target:
 authorization:
   provider: scopeguard
   reference: SCOPEGUARD_MY_TEST_SCOPE
-  scope_file: Project 1/ScopeGuard/scopes/My_Test_Scope.yaml
+  scope_file: Project 1/ScopeGuard/examples/basic_scope.yaml
 execution:
   mode: active
 discovery:

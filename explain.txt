@@ -1,0 +1,662 @@
+================================================================================
+                           HUNT_CHAIN: THE COMPLETE GUIDE
+================================================================================
+An End-to-End Walkthrough of the Architecture, Engines, and Testing Mechanics
+Target System Reference: example-shop.test
+================================================================================
+
+
+================================================================================
+PART 1: THE BIG PICTURE
+================================================================================
+
+What Hunt_Chain Is & The Problem It Solves
+------------------------------------------
+Hunt_Chain is an automated pipeline for authorized bug bounty hunting and
+penetration testing. In traditional security testing, researchers face two bad
+extremes: running loud, monolithic commercial scanners that spray thousands of
+uncalibrated payloads, trigger rate-limits, and generate hundreds of noisy false
+positives; or testing every parameter by hand, which is slow and misses obvious
+low-hanging fruit. Hunt_Chain bridges this gap. It automates the exact, methodical
+workflow an expert human security researcher follows: verifying scope authorization
+first, discovering what assets and endpoints exist, testing them across 22 vulnerability
+categories, independently validating that candidate findings are actually real and
+exploitable without damaging the target, and finally compiling a clean, triager-ready
+report with live secrets redacted.
+
+The 5 Projects in Sequence
+--------------------------
+
++---------------------------------------------------------------------------------+
+| Project 1: ScopeGuard                                                           |
+| Answers: "Are we allowed to test this?"                                         |
++---------------------------------------------------------------------------------+
+                                       |
+                                       v  (Produces: authorization_result.json)
++---------------------------------------------------------------------------------+
+| Project 2: Reconnaissance & Attack Surface Suite                                |
+| Answers: "What exists on the authorized target?"                                |
++---------------------------------------------------------------------------------+
+                                       |
+                                       v  (Produces: attack_surface.json)
++---------------------------------------------------------------------------------+
+| Project 3: Vulnerability Testing Toolkit (22 Categories)                         |
+| Answers: "What might be vulnerable?"                                            |
++---------------------------------------------------------------------------------+
+                                       |
+                                       v  (Produces: vulnerability_result.json)
++---------------------------------------------------------------------------------+
+| Project 4: Validation Layer                                                     |
+| Answers: "Is this finding actually real?"                                       |
++---------------------------------------------------------------------------------+
+                                       |
+                                       v  (Produces: project4_validation.json)
++---------------------------------------------------------------------------------+
+| Project 5: Findings & Reporting Manager                                         |
+| Answers: "Here's what to report, and how to verify the rest by hand."           |
++---------------------------------------------------------------------------------+
+                                       |
+                                       v
+               [report.md (HackerOne / Bugcrowd Ready) & report.json]
+
+The Four Core Philosophies Holding Hunt_Chain Together
+------------------------------------------------------
+1. Fail-Closed Authorization:
+   Nothing in the framework runs unless Project 1 (ScopeGuard) outputs an explicit,
+   positive "IN_SCOPE" verdict. If a target is unrecognized or matches an exclusion,
+   the answer is never "assume it's fine" — the engine immediately halts. Security
+   testing without verified authorization is a crime.
+
+2. Observation vs. Interpretation:
+   The tools record exact, factual observations (HTTP status codes, body lengths,
+   reflected strings, response timing deltas), not speculative assumptions. An engine
+   must never claim "the database is compromised" when all it observed was a database
+   error string in the response body.
+
+3. Confidence Over False Certainty:
+   Findings are classified by confidence tiers (Low, Medium, High) and states
+   (Potential vs. Confirmed vs. Manual-Only). The engine never claims "100% vulnerable"
+   on initial detection alone. Only after independent verification in Project 4 does a
+   finding graduate to "Confirmed".
+
+4. Non-Destructive Testing:
+   Every test and validation strategy is strictly non-destructive. Hunt_Chain never
+   drops tables, deletes customer files, overwrites production records, or installs
+   backdoors. It confirms vulnerabilities using safe mathematical proofs, benign
+   canary tokens, and read-only diagnostic signals.
+
+
+================================================================================
+PART 2: EACH PROJECT, EXPLAINED IN PLAIN LANGUAGE
+================================================================================
+
+--------------------------------------------------------------------------------
+PROJECT 1: SCOPEGUARD (Target Authorization Gate)
+--------------------------------------------------------------------------------
+What It Does:
+ScopeGuard is the gatekeeper of Hunt_Chain. In plain language, it checks the target
+you want to test against the rules defined in your program's scope contract, and
+refuses to let any scanner tool run if the target is outside the permitted boundary.
+
+Inputs and Outputs:
+- Input: A YAML file specifying allowed targets and excluded targets, plus a candidate
+  target URL, hostname, or IP address.
+- Output: `authorization_result.json` containing the verdict (`IN_SCOPE`,
+  `OUT_OF_SCOPE`, or `UNKNOWN`), the rule ID that matched, and an ISO timestamp.
+
+Important Design Decisions:
+1. UNKNOWN Means STOP (Fail-Closed):
+   If a target URL matches neither an in-scope rule nor an out-of-scope exclusion,
+   its status is classified as `UNKNOWN`. In ScopeGuard, `UNKNOWN` triggers an
+   immediate exit code 1 and aborts execution. We never default to allowing traffic.
+2. Exclusions Always Override Inclusions:
+   If a wildcard rule says `*.example-shop.test` is in-scope, but an explicit rule
+   says `billing.example-shop.test` is out-of-scope, the exclusion unconditionally
+   wins. This prevents accidental testing of third-party payment gateways, partner
+   APIs, or critical production endpoints that bounty programs forbid touching.
+3. Cryptographic and Machine-Readable Handoff:
+   ScopeGuard writes a tamper-evident JSON artifact that includes the exact target,
+   matched rule, and timestamp. Downstream tools read this file directly to verify
+   that permission was granted before opening any network sockets.
+
+--------------------------------------------------------------------------------
+PROJECT 2: RECONNAISSANCE & ATTACK SURFACE ENGINE
+--------------------------------------------------------------------------------
+What It Does:
+Project 2 maps out what actually exists on the authorized target. It takes the approved
+domain and discovers all live subdomains, resolves their network IP addresses, checks
+for dangling domain names, and safely inspects web services to identify running
+technologies, web servers, and accessible endpoints.
+
+Inputs and Outputs:
+- Input: `authorization_result.json` from Project 1.
+- Output: `attack_surface.json` (the Attack Surface Model), cataloging all live hosts,
+  DNS records, open HTTP ports, server banners, detected technologies, and discovered
+  endpoint URLs with their parameters.
+
+Important Design Decisions:
+1. Passive First, Active Second:
+   It first inspects public Certificate Transparency (CT) logs to find historical
+   and staging subdomains without sending a single packet to the target's servers.
+   Only after compiling candidate hostnames does it perform active DNS resolution
+   and controlled HTTP probing.
+2. Wildcard DNS Mitigation:
+   Many organizations configure wildcard DNS records (where any random name like
+   `xyz99.example-shop.test` resolves to the same IP). Without detection, a scanner
+   would flood the queue with thousands of phantom subdomains. Project 2 queries a
+   pseudo-random non-existent subdomain first; if it resolves, it flags wildcard
+   mode and filters out false subdomains.
+3. Dangling CNAME (Subdomain Takeover) Auditing:
+   When resolving DNS aliases (CNAMEs), it specifically inspects whether aliases
+   point to external cloud providers (AWS S3, GitHub Pages, Fastly, Heroku) whose
+   underlying resources have been deleted. This flags high-severity takeover risks
+   before any web probing begins.
+
+--------------------------------------------------------------------------------
+PROJECT 3: VULNERABILITY TESTING TOOLKIT (22 Core Families)
+--------------------------------------------------------------------------------
+What It Does:
+Project 3 is the core testing laboratory. It takes the discovered endpoints and
+parameters from Project 2 and runs 22 specialized tester families against them,
+probing for security flaws and generating candidate findings paired with concrete
+"Validation Plans" for confirmation.
+
+Inputs and Outputs:
+- Input: `attack_surface.json` from Project 2.
+- Output: `vulnerability_result.json`, listing all findings with status `CONFIRMED`,
+  `POTENTIAL`, or `MANUAL_ONLY`, along with evidence snippets and validation recipes.
+
+Important Design Decisions:
+1. Separation of Detection from Confirmation:
+   When a tester detects an anomaly (e.g. an error message or a timing delay), it
+   does not scream "vulnerable!". It marks the finding as `POTENTIAL` and packages
+   the exact payload and expected proof into a `validation_plan`. This keeps the
+   detection phase fast and delegates risky confirmation to Stage 4.
+2. Dynamic Parameter Discovery:
+   Testers do not rely on static wordlists. They dynamically extract injection points
+   from endpoint paths, query strings, and JSON request bodies discovered during
+   Stage 2 reconnaissance.
+3. The Manual-Only Stub Convention:
+   Some vulnerability categories cannot and should not be tested automatically.
+   For example, testing a Business Logic flow (like checking whether a coupon code
+   can be applied twice) or an Account Takeover chain (like testing password reset
+   race conditions) often requires human context and carries high risk of locking
+   real accounts or corrupting databases. For these, Project 3 generates a
+   `MANUAL_ONLY` checklist entry containing the endpoint, prerequisites, and a step-by-
+   step testing procedure for the researcher to follow by hand.
+
+The 22 Vulnerability Categories:
+1.  SQL Injection (SQLi) [CWE-89]: Input concatenated into database queries; tested
+    using safe boolean logic and time delays.
+2.  Cross-Site Scripting (XSS) [CWE-79]: Untrusted input reflected unencoded into HTML
+    or executed in the browser DOM.
+3.  Server-Side Request Forgery (SSRF) [CWE-918]: Inducing the backend server to make
+    unauthorized network requests to internal or cloud metadata endpoints.
+4.  IDOR / BOLA [CWE-639]: Accessing another tenant's private objects by tampering with
+    sequential or predictable ID parameters.
+5.  Broken Function Level Authorization (BFLA) [CWE-285]: Calling administrative or
+    privileged endpoints using low-privilege or anonymous credentials.
+6.  Remote Code Execution (RCE) [CWE-78]: Injecting OS shell metacharacters to execute
+    system commands; tested via harmless arithmetic or out-of-band canaries.
+7.  Path Traversal & Arbitrary Upload [CWE-22]: Escaping root directories using dot-dot-
+    slash (`../`) sequences or uploading dangerous file extensions.
+8.  Authentication Bypass [CWE-287]: Circumventing login checks via header spoofing,
+    predictable tokens, or default credentials.
+9.  Account Takeover (ATO) [CWE-284]: Flaws in password resets, OAuth redirect URIs, or
+    session handling enabling unauthorized account access.
+10. XML External Entity (XXE) [CWE-611]: XML parsers misconfigured to parse external
+    system entities, risking local file disclosure.
+11. Cross-Origin Resource Sharing (CORS) [CWE-346]: Trusting arbitrary `Origin` headers
+    while allowing credential transmission (`Access-Control-Allow-Credentials: true`).
+12. Cross-Site Request Forgery (CSRF) [CWE-352]: Missing or bypassable anti-CSRF tokens
+    on state-changing actions (password changes, email updates).
+13. Open Redirect [CWE-601]: Unvalidated destination parameters allowing attackers to
+    bounce victims to external phishing sites.
+14. Security Misconfiguration [CWE-16]: Exposed directory indexes, framework debug
+    consoles, or default administrative portals.
+15. Information Disclosure [CWE-200]: Sensitive technical details leaked in stack
+    traces, server headers, or client-side JavaScript source maps.
+16. Sensitive Data Exposure [CWE-312]: Unencrypted credentials, API keys, or personal
+    identifying information (PII) exposed in response bodies.
+17. Business Logic Flaws [CWE-840]: Flaws in application workflow rules (e.g. negative
+    item prices, skipping payment checkout steps).
+18. Broken Object Property Authorization (BOPA) [CWE-915]: Mass assignment flaws where
+    a client can inject privileged model properties (e.g. `is_admin=true`).
+19. Improper Inventory Management [CWE-1059]: Forgotten legacy, shadow, or unversioned
+    API endpoints running vulnerable older code.
+20. Subdomain Takeover [CWE-403]: DNS records pointing to abandoned cloud/SaaS services
+    available for registration by anyone.
+21. Clickjacking [CWE-1021]: Missing frame-protection headers (`X-Frame-Options` or
+    `Content-Security-Policy frame-ancestors`) allowing UI redressing.
+22. Third-Party API & Webhook Vulnerabilities [CWE-1059]: Flaws in incoming webhook
+    receivers, such as missing HMAC signature verification.
+
+--------------------------------------------------------------------------------
+PROJECT 4: VALIDATION LAYER (Controlled Safe Exploitation)
+--------------------------------------------------------------------------------
+What It Does:
+Project 4 takes the candidate findings from Project 3 and proves whether they are
+genuinely exploitable. It acts as an impartial judge: it replays the specific
+validation mutation under strict observation and checks if the expected proof of
+exploit occurred.
+
+Inputs and Outputs:
+- Input: `vulnerability_result.json` containing `validation_plan` recipes from Project 3.
+- Output: `project4_validation.json`, containing definitive verdicts (`CONFIRMED` or
+  `NOT_CONFIRMED`), baseline-versus-mutation differentials, and captured proof tokens.
+
+Important Design Decisions:
+1. Proof-of-Exploit Over Heuristic Confidence:
+   Project 4 never accepts a finding based on a regex match alone. It requires an
+   observable state differential: a changed response status, an altered body hash,
+   or an out-of-band canary interaction received on a listener.
+2. Differential Comparison (Baseline vs. Mutation):
+   Before firing a validation payload, Project 4 records a clean "Baseline" response.
+   Then it sends the "Mutation" request. It compares the two: if both requests return
+   the exact same 403 Forbidden page, the target is NOT vulnerable, eliminating a
+   false alarm that lesser scanners would report.
+
+--------------------------------------------------------------------------------
+PROJECT 5: FINDINGS & REPORTING MANAGER
+--------------------------------------------------------------------------------
+What It Does:
+Project 5 compiles the final product: a polished vulnerability report formatted
+specifically for bug bounty platforms like HackerOne and Bugcrowd, complete with
+calculated severity scores, impact explanations, reproduction steps, and an
+automatic safety net that strips out real secrets.
+
+Inputs and Outputs:
+- Inputs: All previous artifacts (`authorization_result.json`, `attack_surface.json`,
+  `vulnerability_result.json`, and `project4_validation.json`).
+- Outputs: `report.md` (clean, submission-ready Markdown) and `report.json`
+  (machine-readable JSON for automated ingestion).
+
+Important Design Decisions:
+1. Segregating Confirmed vs. Not-Confirmed vs. Manual Findings:
+   Reports are divided into strictly separate sections. Confirmed findings (with full
+   PoCs) are placed up front in Section 2. Unconfirmed candidates are placed in
+   Section 3 as suggestions for manual review, and checklist items are placed in
+   Section 4. Triagers love this because they immediately see verified issues without
+   wasting time on false leads.
+2. Objective CVSS 3.1 & CWE-1000 Scoring:
+   Instead of guessing whether an issue is "High" or "Critical", Project 5 uses the
+   official CVSS 3.1 Base Metric vector calculations and maps each flaw to the
+   standard MITRE CWE-1000 taxonomy.
+3. Fail-Loud Automated Secret Redaction Safety Net:
+   Before writing any report to disk, Project 5 runs a regex scanner across all output
+   text. If any live AWS keys, GitHub tokens, Stripe secrets, or private session
+   cookies are detected, it automatically redacts them with `[REDACTED_SECRET]`. You
+   will never accidentally leak live production keys in a bug bounty submission.
+
+
+================================================================================
+PART 3: FULL WORKED EXAMPLE — ONE SITE, START TO FINISH
+================================================================================
+
+Target Application:
+    Domain: `example-shop.test`
+    Application: An e-commerce platform with a web storefront and REST API.
+
+--------------------------------------------------------------------------------
+1. ScopeGuard (Project 1)
+--------------------------------------------------------------------------------
+The researcher provides the program's scope contract in `scope.yaml`:
+
+```yaml
+version: "1"
+program:
+  name: "Example Shop Bug Bounty"
+  policy_url: "https://bounty.example-shop.test/policy"
+
+scope:
+  in_scope:
+    - id: "IN-01"
+      target: "*.example-shop.test"
+      type: "wildcard_domain"
+    - id: "IN-02"
+      target: "api.example-shop.test"
+      type: "exact_domain"
+
+  out_of_scope:
+    - id: "OUT-01"
+      target: "payments.example-shop.test"
+      type: "exact_domain"
+```
+
+The researcher feeds `https://api.example-shop.test/products` into ScopeGuard.
+ScopeGuard evaluates:
+- Does it match `payments.example-shop.test`? No.
+- Does it match `*.example-shop.test`? Yes, rule `IN-01` matches.
+
+Resulting Artifact: `authorization_result.json`
+```json
+{
+  "schema_version": "v1",
+  "state": "IN_SCOPE",
+  "target": "https://api.example-shop.test/products",
+  "rule_id": "IN-01",
+  "reason": "Host matches in-scope wildcard rule IN-01 (*.example-shop.test) and has no exclusion.",
+  "timestamp": "2026-10-17T10:00:00Z"
+}
+```
+
+--------------------------------------------------------------------------------
+2. Reconnaissance & Attack Surface Suite (Project 2)
+--------------------------------------------------------------------------------
+Project 2 reads the authorization file and initiates reconnaissance:
+1. Passive CT Search: Discovers `api.example-shop.test`, `store.example-shop.test`,
+   and `admin-staging.example-shop.test`.
+2. Active DNS Resolution:
+   - `api.example-shop.test` -> Resolves to `198.51.100.24` (A record)
+   - `store.example-shop.test` -> Resolves to `198.51.100.25` (A record)
+   - `admin-staging.example-shop.test` -> Resolves to `198.51.100.30` (A record)
+3. HTTP Service Fingerprinting:
+   - Web Server: `nginx/1.24.0` (High confidence)
+   - Backend Framework: `Express / Node.js` (High confidence)
+   - Database Indicator: `PostgreSQL` (Medium confidence, inferred from error format)
+
+Resulting Artifact (Abbreviated): `attack_surface.json`
+```json
+{
+  "schema_version": "v1",
+  "target_domain": "example-shop.test",
+  "assets": [
+    {
+      "hostname": "api.example-shop.test",
+      "ip_addresses": ["198.51.100.24"],
+      "http_services": [
+        {
+          "url": "https://api.example-shop.test",
+          "status_code": 200,
+          "technologies": [
+            { "name": "nginx", "version": "1.24.0", "confidence": "high" },
+            { "name": "Express", "version": "4.19.2", "confidence": "high" },
+            { "name": "PostgreSQL", "version": null, "confidence": "medium" }
+          ],
+          "endpoints": [
+            {
+              "path": "/products",
+              "method": "GET",
+              "parameters": ["category", "sort"]
+            },
+            {
+              "path": "/api/orders/{order_id}",
+              "method": "GET",
+              "parameters": ["order_id"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+--------------------------------------------------------------------------------
+3. Vulnerability Testing Toolkit (Project 3)
+--------------------------------------------------------------------------------
+Project 3 inspects the endpoints and executes tests. We will follow two specific
+categories:
+
+a. SQL Injection (SQLI-01) on `/products`:
+- Discovered Parameter: `category` in `GET /products?category=apparel`
+- Error-Based Probe: Sends `GET /products?category=apparel'`
+  * Server Response: HTTP 500 with body snippet:
+    `syntax error at or near "'" at character 42 (PostgreSQL query failed)`
+- Time-Based Differential Probe:
+  * Baseline request took 0.08 seconds.
+  * Probe `GET /products?category=apparel' AND (SELECT pg_sleep(3))--` took 3.12 seconds.
+- Produced Finding in `vulnerability_result.json`:
+  * `test_id`: `SQLI-01`
+  * `status`: `POTENTIAL`
+  * `confidence`: `medium`
+  * `evidence`: "Observed PostgreSQL syntax error string and 3.04s sleep differential."
+  * `validation_plan`: Contains instructions to re-test using an independent boolean
+    arithmetic probe (`' AND 8211=8211--` vs `' AND 8211=8212--`).
+
+b. IDOR / BOLA (IDOR-01) on `/api/orders/{order_id}`:
+- Setup: Two distinct test personas:
+  * Persona A (Alice): Account token `tok_alice_111`, owns Order `#ord_1001`
+  * Persona B (Bob): Account token `tok_bob_222`, owns Order `#ord_1002`
+- ID Substitution Probe:
+  * Tester makes request: `GET /api/orders/ord_1002`
+  * BUT attaches Persona A's credentials (`Authorization: Bearer tok_alice_111`).
+- Observation:
+  * Server responds HTTP 200 OK with body:
+    `{"order_id": "ord_1002", "customer_name": "Bob Miller", "total": "$149.99"}`
+- Produced Finding in `vulnerability_result.json`:
+  * `test_id`: `IDOR-01`
+  * `status`: `POTENTIAL`
+  * `confidence`: `high`
+  * `evidence`: "Persona A retrieved private invoice ord_1002 belonging to Bob Miller."
+  * `validation_plan`: None required — the evidence already captured unambiguous cross-
+    tenant data leakage.
+
+--------------------------------------------------------------------------------
+4. Validation Layer (Project 4)
+--------------------------------------------------------------------------------
+Project 4 inspects both candidate findings:
+
+- Resolving the SQL Injection Finding:
+  * Why a second pass was needed: An occasional 500 error or network lag can happen
+    by coincidence (a web server glitch or temporary database timeout). To prevent
+    reporting a phantom bug, Project 4 executes the `ValidationPlan`:
+    1. Sends Baseline: `GET /products?category=apparel` -> Returns 15 products.
+    2. Sends True Math: `GET /products?category=apparel' AND 8211=8211--` -> Returns 15 products.
+    3. Sends False Math: `GET /products?category=apparel' AND 8211=8212--` -> Returns 0 products.
+  * Verdict: The boolean differential is mathematically verified. Status is upgraded
+    to `CONFIRMED`.
+
+- Resolving the IDOR / BOLA Finding:
+  * Why no second pass was needed: The evidence gathered during Stage 3 was already
+    deterministic. Persona A's request headers and Bob's personal billing data in the
+    response body formed an irrefutable proof-of-exploit. The decision is marked
+    `CONFIRMED` immediately based on the verified tenant data mismatch.
+
+Resulting Artifact: `project4_validation.json`
+```json
+{
+  "schema_version": "v1",
+  "target": "example-shop.test",
+  "validations": [
+    {
+      "result_id": "res-sqli-01",
+      "test_id": "SQLI-01",
+      "status": "CONFIRMED",
+      "confirmed": true,
+      "proof_summary": "Boolean differential query confirmed: 15 items returned on True, 0 on False."
+    },
+    {
+      "result_id": "res-idor-01",
+      "test_id": "IDOR-01",
+      "status": "CONFIRMED",
+      "confirmed": true,
+      "proof_summary": "Cross-tenant access verified: Persona A accessed Persona B order data."
+    }
+  ]
+}
+```
+
+--------------------------------------------------------------------------------
+5. Findings & Reporting Manager (Project 5)
+--------------------------------------------------------------------------------
+Project 5 compiles the final report. Here is the exact, complete report entry for the
+confirmed SQL Injection finding as it appears in `report.md`:
+
+```markdown
+### [High] SQL Injection via `category` Query Parameter on `/products`
+
+- **Vulnerability Family**: SQL Injection (SQLi)
+- **CWE**: [CWE-89: Improper Neutralization of Special Elements used in an SQL Command](https://cwe.mitre.org/data/definitions/89.html)
+- **CVSS 3.1 Base Score**: **8.6 (High)** — `CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N`
+- **Target Endpoint**: `GET https://api.example-shop.test/products`
+- **Vulnerable Parameter**: `category` (Query String)
+- **Status**: **CONFIRMED** (Verified by Validation Engine)
+
+#### 1. Description
+The `category` parameter in the `/products` endpoint is dynamically concatenated into a
+backend PostgreSQL database query without adequate parameterized sanitization or prepared
+statements. An unauthenticated remote attacker can inject SQL syntax to alter query logic,
+bypass application filters, and extract sensitive database records.
+
+#### 2. Steps to Reproduce
+1. Send a standard GET request to view the baseline response:
+   ```http
+   GET /products?category=apparel HTTP/1.1
+   Host: api.example-shop.test
+   ```
+   *Observe*: HTTP 200 OK with 15 product records.
+
+2. Send the boolean `True` test condition:
+   ```http
+   GET /products?category=apparel'%20AND%208211=8211-- HTTP/1.1
+   Host: api.example-shop.test
+   ```
+   *Observe*: HTTP 200 OK with the same 15 product records.
+
+3. Send the boolean `False` test condition:
+   ```http
+   GET /products?category=apparel'%20AND%208211=8212-- HTTP/1.1
+   Host: api.example-shop.test
+   ```
+   *Observe*: HTTP 200 OK with 0 records (`{"products": []}`).
+
+#### 3. Evidence & Proof of Exploit
+- **Syntax Error Triggered**: An initial single-quote probe (`'`) returned:
+  `syntax error at or near "'" at character 42 (PostgreSQL error)`
+- **Boolean Query Differential**:
+  * Baseline items returned: `15`
+  * Condition `8211=8211` items returned: `15`
+  * Condition `8211=8212` items returned: `0`
+- **Validation Engine Proof**: Verified non-destructively without modifying database state.
+
+#### 4. Impact
+An attacker can exploit this flaw to dump arbitrary database contents, including user
+credentials, customer payment histories, and secret API tokens, or potentially read files
+from the underlying database server host.
+
+#### 5. Suggested Remediation
+Use parameterized queries (prepared statements) with the PostgreSQL query driver. Never
+concatenate user-controlled input directly into SQL strings.
+*Example (Node.js pg driver)*:
+```javascript
+// Remediated code
+const query = 'SELECT * FROM products WHERE category = $1';
+const results = await db.query(query, [req.query.category]);
+```
+```
+
+
+================================================================================
+PART 4: HOW A SINGLE TESTER ACTUALLY WORKS, INTERNALLY
+================================================================================
+
+Let us trace the exact internal Python execution of `SQLI01Tester` against our
+example target `https://api.example-shop.test/products?category=apparel`:
+
+Step 1: Ingestion & Surface Discovery
+-------------------------------------
+The tester receives an execution `context` object containing the endpoint URL,
+HTTP method, and headers discovered by Project 2.
+- The tester calls `discover_injection_points(context)`.
+- The parser breaks down the URL using `urllib.parse.urlsplit` and `parse_qsl`.
+- It identifies that `category` is a candidate query parameter with current value
+  `apparel`.
+
+Step 2: Sending the Baseline Probe
+----------------------------------
+The tester sends a request with the original benign value (`apparel`) and records:
+- `baseline_status`: 200
+- `baseline_body_len`: 4,210 bytes
+- `baseline_body_hash`: `a7f92b...`
+- `baseline_elapsed`: 0.08 seconds
+
+Step 3: Error-Based Syntax Probing
+----------------------------------
+The tester wants to see if the database parser reacts to unbalanced quotes.
+- It substitutes `category=apparel'` and sends the HTTP request.
+- It scans the response body against a catalog of compiled regex patterns representing
+  known SQL syntax errors across MySQL, PostgreSQL, Oracle, MSSQL, and SQLite.
+- Pattern Match: It matches the PostgreSQL regex:
+  `re.compile(r"syntax error at or near.*PostgreSQL", re.IGNORECASE)`
+- The tester notes: "Database error string detected in response body."
+
+Step 4: Timing-Based Differential Probing
+-----------------------------------------
+To ensure the error wasn't an isolated quirk, the tester sends a time-delay probe:
+- It constructs: `apparel' AND (SELECT pg_sleep(3))--`
+- It measures network round-trip time: `3.12 seconds`.
+- It calculates the timing delta: `3.12s - 0.08s = 3.04s` (close to the requested 3s delay).
+
+Step 5: Deciding Suspicion & Packaging the Validation Plan
+----------------------------------------------------------
+The tester does NOT write `CONFIRMED` yet. It marks the result:
+- `status`: `"POTENTIAL"`
+- `confidence`: `"medium"`
+- It creates a `ValidationPlan` object:
+  ```python
+  plan = ValidationPlan(
+      mutation=ValidationRequest(
+          method="GET",
+          url="https://api.example-shop.test/products?category=apparel'%20AND%208211=8211--",
+          headers={"User-Agent": "Hunt_Chain/1.0"},
+      ),
+      expectation="Response item count on 8211=8211 matches baseline; 8211=8212 returns empty.",
+  )
+  ```
+- It attaches this plan to the finding dictionary and yields it to the orchestrator.
+
+Step 6: What the Validation Layer (Project 4) Does with It
+----------------------------------------------------------
+When Project 4 receives this `POTENTIAL` finding:
+1. It extracts `finding["validation_plan"]`.
+2. It sends the `mutation` request (`8211=8211`). It counts items: 15 items returned.
+3. It sends the inverse mutation (`8211=8212`). It counts items: 0 items returned.
+4. It checks: Is `15 != 0`? Yes. Did the server return 200 OK both times? Yes.
+5. The boolean differential is proven beyond doubt. Project 4 returns:
+   `decision.confirmed = True`.
+6. The finding is now marked `CONFIRMED` and passed to Project 5 for the final report.
+
+
+================================================================================
+PART 5: SAFETY & SCOPE BOUNDARIES (SUMMARY)
+================================================================================
+
+Hunt_Chain is engineered for professional, authorized environments. To prevent
+unintended damage, legal liabilities, or service disruptions, the framework enforces
+hard boundaries in code:
+
+1. No Destructive Payloads (Zero State Corruption):
+   - In SQL Injection: Only `SELECT`, mathematical equations (`1=1`), and time delays
+     (`pg_sleep`, `sleep`) are transmitted. Commands like `DROP`, `DELETE`, `UPDATE`,
+     or `ALTER` are never sent.
+   - In Path Traversal & File Upload: Testers only probe read-only diagnostic files
+     (such as reading `/etc/passwd` or `win.ini`). File upload testers upload benign
+     text files with harmless tokens (`hunt_canary_test.txt`); they never upload live
+     webshells or executable backdoors.
+
+2. Hard Stops on Remote Code Execution (RCE):
+   - RCE testers only execute safe, non-mutating commands (e.g. `id`, `whoami`,
+     `expr 1337 + 1`, or out-of-band DNS canaries).
+   - Hard stops: No spawning interactive shells, no altering system permissions,
+     no downloading external binaries, and no modifying system configuration files.
+
+3. No Denial of Service (DoS):
+   - High-concurrency stress testing, packet floods, buffer overflow crashes, and
+     slowloris connection-exhaustion techniques are completely excluded.
+   - All probes have built-in request rate caps and connection timeouts.
+
+4. Redaction Before Persistence:
+   - Live passwords, authorization bearer tokens, API credentials, and personal
+     identifying information (PII) discovered during testing are never saved in
+     raw text in reports. The fail-loud redaction engine cleanses all output.
+
+5. Strict Git Hygiene:
+   - All assessment runs, target logs, and discovered vulnerabilities live exclusively
+     in the local `Hunt_Chain_Runs/` folder, which is permanently ignored by Git.
+   - Pushing Hunt_Chain to GitHub or cloning it onto a new machine never exposes
+     previous client data.
+
+================================================================================
+END OF EXPLANATION REPORT
+================================================================================
